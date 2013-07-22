@@ -1,9 +1,7 @@
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
+import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
@@ -35,9 +33,14 @@ public class Main
 			System.exit(1);
 		}
 	    
-	    System.out.printf("Loaded Image: '%s' %dx%d", configFile.getProperty("inputfile"), inputimg.getWidth(), inputimg.getHeight());
+	    System.out.printf("Loaded Image: '%s' %dx%d\n", configFile.getProperty("inputfile"), inputimg.getWidth(), inputimg.getHeight());
 	    
+	    byte[] imagePixelData = ((DataBufferByte)inputimg.getRaster().getDataBuffer()).getData();
 	    
+		System.out.println((imagePixelData[0]+256) % 256); //BLUE
+		System.out.println((imagePixelData[1]+256) % 256); //GREEN
+		System.out.println((imagePixelData[2]+256) % 256); //RED
+		
 		
 		
 		
