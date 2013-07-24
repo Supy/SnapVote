@@ -1,11 +1,14 @@
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
+
+import processors.GrayscaleProcessor;
+import processors.SobelProcessor;
+import processors.GrayscaleProcessor.GrayscaleAlgorithm;
 
 
 /*
@@ -34,16 +37,15 @@ public class Main
 		}
 	    
 	    System.out.printf("Loaded Image: '%s' %dx%d\n", configFile.getProperty("inputfile"), inputimg.getWidth(), inputimg.getHeight());
-	    
-	    byte[] imagePixelData = ((DataBufferByte)inputimg.getRaster().getDataBuffer()).getData();
-	    
-		System.out.println((imagePixelData[0]+256) % 256); //BLUE
-		System.out.println((imagePixelData[1]+256) % 256); //GREEN
-		System.out.println((imagePixelData[2]+256) % 256); //RED
 		
+		new BufferedImageVis.BufferedImageView(inputimg);	
 		
+		//new BufferedImageVis.BufferedImageView(AHEProcessor.Process(GrayscaleProcessor.Process(inputimg, GrayscaleAlgorithm.AVERAGE)));
 		
+				
+		new BufferedImageVis.BufferedImageView(GrayscaleProcessor.Process(inputimg, GrayscaleAlgorithm.AVERAGE));	
 		
+		new BufferedImageVis.BufferedImageView(SobelProcessor.Process(inputimg));
 	}
 
 }
