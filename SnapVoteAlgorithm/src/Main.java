@@ -45,7 +45,7 @@ public class Main
 				
 		new BufferedImageVis.BufferedImageView(GrayscaleProcessor.Process(inputimg, GrayscaleAlgorithm.AVERAGE));	
 		
-		new BufferedImageVis.BufferedImageView(SobelProcessor.Process(inputimg));
+		new BufferedImageVis.BufferedImageView(SobelProcessor.Process(inputimg, 100));
 	}
 
 }
