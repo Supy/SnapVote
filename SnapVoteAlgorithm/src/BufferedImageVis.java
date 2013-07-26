@@ -1,8 +1,11 @@
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
@@ -60,12 +63,14 @@ public class BufferedImageVis
 		
 	}
 	
-	public static class ImagePanel extends JPanel
+	public static class ImagePanel extends JPanel implements MouseMotionListener
 	{
 		private static final long serialVersionUID = 4007214516797055040L;
 		BufferedImage img;
 		int width;
 		int height;
+		int mx, my;
+		float scalefactor = 1;
 		
 		public ImagePanel(BufferedImage bi)
 		{
@@ -75,6 +80,11 @@ public class BufferedImageVis
 			 img = new BufferedImage(cm, raster, isAlphaPremultiplied, null);	
 			 width = Math.min(img.getWidth(), 1600);
 			 height = (int) (((float)img.getHeight() / (float)img.getWidth()) * width);
+			 
+			 scalefactor = (float)width / img.getWidth();
+			 this.addMouseMotionListener(this);
+			 mx = 0;
+			 my = 0;
 		}
 		
 		@Override
@@ -85,8 +95,36 @@ public class BufferedImageVis
 		@Override		
 		protected void paintComponent(Graphics g)
 		{
-			super.paintComponent(g);
-			g.drawImage(img, 0, 0, width, height, this);
+			super.paintComponent(g);		
+			
+			
+			g.drawImage(img, 0, 0, width, height, this);		
+			
+			
+			g.drawImage(img, 5, 5, 205, 205, mx-100, my-100, mx+100, my+100, this);
+
+			g.setColor(Color.white);
+			g.drawRect(5, 5, 200, 200);
+			
+			
+		}		
+
+		@Override
+		public void mouseDragged(MouseEvent e)
+		{
+			// TODO Auto-generated method stub
+			
+			
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e)
+		{
+			// TODO Auto-generated method stub
+			mx = (int) (e.getX()/scalefactor);
+			my = (int) (e.getY()/scalefactor);
+			this.repaint();
+			
 		}
 	}
 	
