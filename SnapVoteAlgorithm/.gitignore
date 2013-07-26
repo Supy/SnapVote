@@ -1,5 +1,5 @@
 .idea/
 bin/
-config.properties
-.png
-.jpg
+*.properties
+*.png
+*.jpg
