@@ -47,7 +47,7 @@ public class Main
 		
 		
 		// APPLY GAUSSIAN BLUR
-		int gaussiansize = 3;
+		int gaussiansize = 2;
 		double [][] gaussian = Gaussian.Make(gaussiansize);
 		
 		for(int y=0;y<inputdata.height;y++)
@@ -85,17 +85,29 @@ public class Main
 				int Gy = -(gaussiandata.getPixel(x-1, y-1) & 0xFF) - 2*(gaussiandata.getPixel(x-1, y) & 0xFF) -(gaussiandata.getPixel(x-1, y+1) & 0xFF) +
 						(gaussiandata.getPixel(x+1, y-1) & 0xFF) + 2*(gaussiandata.getPixel(x+1, y) & 0xFF) +(gaussiandata.getPixel(x+1, y+1) & 0xFF);
 				
-				int Gm = ((int) Math.sqrt(Gx*Gx + Gy*Gy)) & 0xFF;	
+				int Gm = ((int) Math.sqrt(Gx*Gx + Gy*Gy));	
 				
 				//minimum threshold
-				if(Gm < 100) Gm = 0;				
-				
-				double angle = Math.atan2(Gy,Gx);					
-				int degrees = (int) ((angle * 180) / Math.PI);					
-				System.out.println(degrees);
-				
-				
-				edgegradientdata.setPixel(x,y, 255 << 24 | Gm << 16 | Gm << 8 |  Gm);				
+				if(Gm > 100)
+				{
+					
+					double angle = Math.atan2(Gy,Gx);					
+					float degrees = (float) (((angle * 180) / Math.PI) + 22.5f);					
+					if (degrees < 0) degrees += 180;
+					
+					int acat = 3;
+					if (degrees < 180) acat = 135;
+					if (degrees < 135) acat = 90;
+					if (degrees < 90) acat = 45;
+					if (degrees < 45) acat = 0;
+
+					if (Gm > 255) Gm = 255;
+					edgegradientdata.setPixel(x,y, Gm << 24 | (acat+110));
+				}
+				else
+				{
+					edgegradientdata.setPixel(x,y, 0);
+				}				
 			}
 		}
 		
