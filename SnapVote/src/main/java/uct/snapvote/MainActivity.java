@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == IntCode.LOADIMAGE && resultCode == RESULT_OK){
             try {
-                byte[][] grayscale = readAwesomeGrayscale(data.getDataString());
+                ImageByteBuffer grayscale = readAwesomeGrayscale(data.getDataString());
 
 
 
@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private byte[][] readAwesomeGrayscale(String datastr) throws IOException {
+    private ImageByteBuffer readAwesomeGrayscale(String datastr) throws IOException {
         // first get content uri of image on phone
         Uri contentURI = Uri.parse(datastr);
         ContentResolver cr = getContentResolver();
@@ -97,7 +97,7 @@ public class MainActivity extends Activity {
         long t1 = System.currentTimeMillis();
 
         // hurrah now we know how big our grayscale byte buffer is!
-        byte[][] gbuffer = new byte[imageHeight][imageWidth];
+        ImageByteBuffer gbuffer = new ImageByteBuffer(imageWidth, imageHeight);
 
         Log.d("main.readAwesomeGrayscale","Resolution: " + imageWidth + "x" +imageHeight);
 
@@ -124,7 +124,7 @@ public class MainActivity extends Activity {
                 for(int x = 0;x<imageWidth;x++) {
                     int pix = pixdata[y*imageWidth+x];
                     int g = ((pix & 0xFF) + ((pix >> 8) & 0xFF) + ((pix >> 16) & 0xFF))/3;
-                    gbuffer[i*stripheight+y][x] = (byte)g;
+                    gbuffer.set(x, i*stripheight+y, (byte)g);
                 }
         }
         Rect r = new Rect(0, imageHeight-rem_layer,imageWidth, imageHeight);
@@ -136,7 +136,7 @@ public class MainActivity extends Activity {
             for(int x = 0;x<imageWidth;x++) {
                 int pix = pixdata[y*imageWidth+x];
                 int g = ((pix & 0xFF) + ((pix >> 8) & 0xFF) + ((pix >> 16) & 0xFF))/3;
-                gbuffer[imageHeight-rem_layer+y][x] = (byte)g;
+                gbuffer.set(x, imageHeight-rem_layer+y, (byte)g);
             }
 
         long t2 = System.currentTimeMillis();
