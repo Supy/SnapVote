@@ -1,10 +1,29 @@
 package uct.snapvote;
 
+import android.content.ContentResolver;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapRegionDecoder;
+import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.Environment;
+import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class MainActivity extends Activity {
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -12,12 +31,118 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-    
+
+    public void loadImage(View view){
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(intent, IntCode.LOADIMAGE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == IntCode.LOADIMAGE && resultCode == RESULT_OK){
+            try {
+                byte[][] grayscale = readAwesomeGrayscale(data.getDataString());
+
+
+
+//                Bitmap bm = Bitmap.createBitmap(grayscale[0].length, grayscale.length, Bitmap.Config.ARGB_8888);
+//
+//                for(int y = 0;y<grayscale.length;y++) {
+//                    for(int x = 0;x<grayscale[0].length;x++) {
+//                        bm.setPixel(x,y, 0xff000000 + (grayscale[y][x] & 0xFF));
+//                    }
+//                }
+//
+//                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+//                bm.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
+//
+//                File f = new File(Environment.getExternalStorageDirectory() + File.separator + "test.jpg");
+//                f.createNewFile();
+//                FileOutputStream fo = new FileOutputStream(f);
+//                fo.write(bytes.toByteArray());
+//
+//                fo.close();
+
+
+            } catch (IOException e) {
+                Log.d("main.onActivityResult",e.toString());
+            }
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private byte[][] readAwesomeGrayscale(String datastr) throws IOException {
+        // first get content uri of image on phone
+        Uri contentURI = Uri.parse(datastr);
+        ContentResolver cr = getContentResolver();
+        // open file stream
+        InputStream in = cr.openInputStream(contentURI);
+
+        // read image attributes
+        BitmapFactory.Options preOptions = new BitmapFactory.Options();
+        preOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(in,null,preOptions);
+        int imageHeight = preOptions.outHeight;
+        int imageWidth = preOptions.outWidth;
+
+
+        long t1 = System.currentTimeMillis();
+
+        // hurrah now we know how big our grayscale byte buffer is!
+        byte[][] gbuffer = new byte[imageHeight][imageWidth];
+
+        Log.d("main.readAwesomeGrayscale","Resolution: " + imageWidth + "x" +imageHeight);
+
+        // reset input stream
+        in = cr.openInputStream(contentURI);
+        BitmapRegionDecoder regDec = BitmapRegionDecoder.newInstance(in, false);
+
+
+        int stripheight = 500;  // TODO: this should really be determined by looking at max heap size
+        int num_layers = imageHeight / stripheight;
+        int rem_layer = imageHeight % stripheight;
+        Bitmap stripbit;
+
+        BitmapFactory.Options postOptions = new BitmapFactory.Options();
+        preOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+        for(int i=0;i<num_layers;i++) {
+            Rect r = new Rect(0, i*stripheight,imageWidth, (i+1)*stripheight);
+            stripbit = regDec.decodeRegion(r, postOptions);
+            int[] pixdata = new int[stripheight*imageWidth];
+            stripbit.getPixels(pixdata, 0, imageWidth, 0,0,imageWidth, stripheight);
+
+            for(int y=0;y<stripheight;y++)
+                for(int x = 0;x<imageWidth;x++) {
+                    int pix = pixdata[y*imageWidth+x];
+                    int g = ((pix & 0xFF) + ((pix >> 8) & 0xFF) + ((pix >> 16) & 0xFF))/3;
+                    gbuffer[i*stripheight+y][x] = (byte)g;
+                }
+        }
+        Rect r = new Rect(0, imageHeight-rem_layer,imageWidth, imageHeight);
+        stripbit = regDec.decodeRegion(r, postOptions);
+        int[] pixdata = new int[rem_layer*imageWidth];
+        stripbit.getPixels(pixdata, 0, imageWidth, 0,0,imageWidth, rem_layer);
+
+        for(int y=0;y<rem_layer;y++)
+            for(int x = 0;x<imageWidth;x++) {
+                int pix = pixdata[y*imageWidth+x];
+                int g = ((pix & 0xFF) + ((pix >> 8) & 0xFF) + ((pix >> 16) & 0xFF))/3;
+                gbuffer[imageHeight-rem_layer+y][x] = (byte)g;
+            }
+
+        long t2 = System.currentTimeMillis();
+
+        Log.d("main.readAwesomeGrayscale","elapsed: " + (t2-t1));
+        return gbuffer;
+    }
+
 }
