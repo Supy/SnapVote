@@ -1,6 +1,7 @@
 package uct.snapvote;
 
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -10,12 +11,17 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 public class PreprocessActivity extends Activity {
+
+    String uristr;
+    Button btnProcess;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,11 +31,30 @@ public class PreprocessActivity extends Activity {
         setupActionBar();
 
         //extract image url from bundle
-        Log.d("ImageURI", getIntent().getStringExtra("ImageURI"));
-        String uristr = getIntent().getStringExtra("ImageURI");
+        uristr = getIntent().getStringExtra("ImageUri");
+
+        // add click event
+        // bind onclick event
+        btnProcess = (Button) findViewById(R.id.btnProcess);
+        btnProcess.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                createAndLaunchProcess();
+            }
+        });
 
         //load up thumbnail
         loadThumbnail(uristr);
+    }
+
+    private void createAndLaunchProcess() {
+        Intent intent = new Intent(this, ProcessActivity.class);
+
+        intent.putExtra("ImageUri", uristr);
+        // TODO setup proper colours here as integers
+        intent.putExtra("ColourArray", new int[]{ 0 });
+
+        startActivity(intent);
     }
 
     /**

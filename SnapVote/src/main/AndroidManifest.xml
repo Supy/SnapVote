@@ -35,6 +35,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="uct.snapvote.MainActivity" />
         </activity>
+        <activity
+            android:name="uct.snapvote.ProcessActivity"
+            android:label="@string/title_activity_process" >
+        </activity>
     </application>
 
 </manifest>
