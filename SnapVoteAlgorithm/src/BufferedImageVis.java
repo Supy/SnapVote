@@ -61,6 +61,10 @@ public class BufferedImageVis
 			
 		}
 		
+		public void setImage(BufferedImage input){
+			imgpanl.updateImage(input);
+		}
+		
 	}
 	
 	public static class ImagePanel extends JPanel implements MouseMotionListener
@@ -78,7 +82,7 @@ public class BufferedImageVis
 			 boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
 			 WritableRaster raster = bi.copyData(null);
 			 img = new BufferedImage(cm, raster, isAlphaPremultiplied, null);	
-			 width = Math.min(img.getWidth(), 1600);
+			 width = Math.min(img.getWidth(), 1800);
 			 height = (int) (((float)img.getHeight() / (float)img.getWidth()) * width);
 			 
 			 scalefactor = (float)width / img.getWidth();
@@ -125,6 +129,14 @@ public class BufferedImageVis
 			my = (int) (e.getY()/scalefactor);
 			this.repaint();
 			
+		}
+		
+		public void updateImage(BufferedImage bi){
+			 ColorModel cm = bi.getColorModel();
+			 boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+			 WritableRaster raster = bi.copyData(null);
+			 img = new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+			 this.repaint();
 		}
 	}
 	

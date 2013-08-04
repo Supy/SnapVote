@@ -101,56 +101,102 @@ public class Main
 			}
 		}
 		
+		System.out.println("Sobel complete");
+		
+		final int HIGH = 190;
+		final int LOW = 70;
+		
 		for(int y = 1; y < edgegradientdata.height-1; y++){
 			for(int x = 1; x < edgegradientdata.width-1; x++){
 				int pixel = edgegradientdata.getPixel(x, y);
 				int gradient = pixel & 0xFF;
-				int edge = 0;
+				int peak = 0;
+
+				int angle = (pixel >> 24) & 0xFF;
+				int x1 = x;
+				int x2 = x;
+				int y1 = y;
+				int y2 = y;
 				
-				if(gradient > 0){
-					int angle = (pixel >> 24) & 0xFF;
-					int x1 = x;
-					int x2 = x;
-					int y1 = y;
-					int y2 = y;
-					
-					if(angle == 0){
-						x1--;
-						x2++;						
-					}else if(angle == 45){
-						x1--;
-						x2++;
-						y1--;
-						y2++;						
-					}else if(angle == 90){
-						y1--;
-						y2++;
-					}else{
-						x1--;
-						x2++;
-						y1++;
-						y2--;
-					}
-					
-					int px1 = edgegradientdata.getPixel(x1, y1);
-					int px2 = edgegradientdata.getPixel(x2, y2);
-					
-					if(gradient > (px1 & 0xFF) && gradient > (px2 & 0xFF))
-						edge = 255;
+				if(angle == 90){
+					x1--;
+					x2++;						
+				}else if(angle == 45){
+					x1--;
+					x2++;
+					y1--;
+					y2++;						
+				}else if(angle == 0){
+					y1--;
+					y2++;
+				}else{
+					x1--;
+					x2++;
+					y1++;
+					y2--;
 				}
 				
-				edgegradientdata.setPixel(x, y, (255 << 24) | edge);
+				int px1 = edgegradientdata.getPixel(x1, y1);
+				int px2 = edgegradientdata.getPixel(x2, y2);
+				int finalpeak = 0;
+				
+				if(gradient > (px1 & 0xFF) && gradient > (px2 & 0xFF)){
+					peak = gradient;
+					// High threshold
+					if(peak > HIGH){
+						finalpeak = 255;
+						peak = 0;
+					}else if(peak < LOW){
+						peak = 0;
+					}
+				}
+				
+				edgegradientdata.setPixel(x, y, (255 << 24) | (peak << 8) | finalpeak);
 			}
 				
 		}
+		BufferedImageVis.BufferedImageView img = new BufferedImageVis.BufferedImageView(edgegradientdata.toImage());
+		// Low threshold
+		boolean more;
+		do{
+			more = false;
+			for(int y = 1; y < edgegradientdata.height-1; y++){
+				for(int x = 1; x < edgegradientdata.width-1; x++){
+					
+					int pixel = edgegradientdata.getPixel(x, y);
+					
+					if((pixel & 0xFF) == 255){
+						for(int p = -1; p < 1; p++){
+							for(int q = -1; q < 1; q++){
+								int neighbour = edgegradientdata.getPixel(x+p, y+q);
+								
+								if(((neighbour >> 8) & 0xFF) > 0){
+									neighbour = (255 << 24) | 255;
+									edgegradientdata.setPixel(x+p, y+q, neighbour);
+									more = true;
+								}
+							}
+						}
+					}
+				}
+			}
+			img.setImage(edgegradientdata.toImage());
+		}while(more);
 		
-		System.out.println("Sobel complete");				
-
+				
+		for(int y = 1; y < edgegradientdata.height-1; y++){
+			for(int x = 1; x < edgegradientdata.width-1; x++){
+				
+				int pixel = edgegradientdata.getPixel(x, y);
+				
+				if((pixel >> 8 & 0xFF) != 0){
+					edgegradientdata.setPixel(x, y, (255 << 24) | 0);
+				}
+			}
+		}
 		
+		img.setImage(edgegradientdata.toImage());	
 		
-		new BufferedImageVis.BufferedImageView(edgegradientdata.toImage());
-		
-
 	}
 
 }
