@@ -21,6 +21,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import uct.snapvote.filter.BaseFilter;
+
 public class MainActivity extends Activity {
 
 
@@ -50,25 +52,18 @@ public class MainActivity extends Activity {
             try {
                 ImageByteBuffer grayscale = readAwesomeGrayscale(data.getDataString());
 
+                long t1 = System.currentTimeMillis();
+
+                ImageByteBuffer blurred = new ImageByteBuffer(grayscale.getWidth(), grayscale.getHeight());
 
 
-//                Bitmap bm = Bitmap.createBitmap(grayscale[0].length, grayscale.length, Bitmap.Config.ARGB_8888);
-//
-//                for(int y = 0;y<grayscale.length;y++) {
-//                    for(int x = 0;x<grayscale[0].length;x++) {
-//                        bm.setPixel(x,y, 0xff000000 + (grayscale[y][x] & 0xFF));
-//                    }
-//                }
-//
-//                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//                bm.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
-//
-//                File f = new File(Environment.getExternalStorageDirectory() + File.separator + "test.jpg");
-//                f.createNewFile();
-//                FileOutputStream fo = new FileOutputStream(f);
-//                fo.write(bytes.toByteArray());
-//
-//                fo.close();
+
+
+
+                long t2 = System.currentTimeMillis();
+
+                Log.d("derp","elapsed: " + (t2-t1));
+
 
 
             } catch (IOException e) {

@@ -9,7 +9,14 @@ import uct.snapvote.ImageByteBuffer;
  */
 public class BaseFilter {
 
-    public void process(ImageByteBuffer source, ImageByteBuffer destination) {
+    ImageByteBuffer source, destination;
+
+    public BaseFilter(ImageByteBuffer source, ImageByteBuffer destination) {
+        this.source = source;
+        this.destination = destination;
+    }
+
+    public void process() {
         int height = source.getHeight();
         int width = source.getWidth();
         for(int y=0;y<height;y++)
