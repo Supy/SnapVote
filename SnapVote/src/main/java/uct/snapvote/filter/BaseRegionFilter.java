@@ -11,6 +11,8 @@ public class BaseRegionFilter {
     int srcx, srcy, srcheight, srcwidth;
 
     public BaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination) {
+        this.source = source;
+        this.destination = destination;
         this.srcheight = source.getHeight();
         this.srcwidth = source.getWidth();
         this.srcx = 0;
@@ -18,6 +20,8 @@ public class BaseRegionFilter {
     }
 
     public BaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination, int srcx, int srcy, int srcwidth, int srcheight) {
+        this.source = source;
+        this.destination = destination;
         this.srcheight = srcheight;
         this.srcwidth = srcwidth;
         this.srcx = srcx;
