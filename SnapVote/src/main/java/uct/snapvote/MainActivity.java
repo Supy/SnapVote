@@ -36,6 +36,7 @@ import uct.snapvote.util.DebugTimer;
 public class MainActivity extends Activity {
 
     private static final int CAMERA_IMAGE_REQUEST_CODE = 101;
+    private static final int GALLERY_IMAGE_REQUEST_CODE = 102;
 
     private ListView listPreviousPolls;
     private Button btnNewPoll;
@@ -80,7 +81,7 @@ public class MainActivity extends Activity {
                             }
                         }).setNegativeButton("Gallery", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                // Do nothing.
+                                launchGallery();
                             }
                 }).show();
             }
@@ -106,12 +107,29 @@ public class MainActivity extends Activity {
                 Toast.makeText(getApplicationContext(), "Image capture failed.", Toast.LENGTH_LONG).show();
             }
         }
+        else if(requestCode == GALLERY_IMAGE_REQUEST_CODE) {
+            if(resultCode == RESULT_OK) {
+                Log.d("SnapVote", "Data: "+data.getData());
+                Intent intent = new Intent(this, PreprocessActivity.class);
+                startActivity(intent);
+            } else if (resultCode == RESULT_CANCELED) {
+                // Do nothing
+            } else {
+                Toast.makeText(getApplicationContext(), "Gallery intent failed.", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void launchCamera(){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         //intent.putExtra(MediaStore.EXTRA_OUTPUT, getDestinationFilePath());
         startActivityForResult(intent, CAMERA_IMAGE_REQUEST_CODE);
+    }
+
+    private void launchGallery(){
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(intent, GALLERY_IMAGE_REQUEST_CODE);
     }
 
     private Uri getDestinationFilePath(){
@@ -135,11 +153,7 @@ public class MainActivity extends Activity {
         return Uri.fromFile(mediaFile);
     }
 
-    public void loadImage(View view){
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        startActivityForResult(intent, 101);
-    }
+
 
     protected void onActivityResultDerp(int requestCode, int resultCode, Intent data) {
         if (requestCode == 101 && resultCode == RESULT_OK){
