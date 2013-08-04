@@ -100,9 +100,11 @@ public class Main
 			}
 		}
 		
+		// The thresholds for the edge tracing.
 		final int HIGH = 150;
 		final int LOW = 70;
 		
+		// Determine which pixels are gradient peaks.
 		for(int y = 1; y < edgegradientdata.height-1; y++){
 			for(int x = 1; x < edgegradientdata.width-1; x++){
 				int pixel = edgegradientdata.getPixel(x, y);
@@ -115,6 +117,7 @@ public class Main
 				int y1 = y;
 				int y2 = y;
 				
+				// Which two neighbouring pixels must we compare to?
 				if(angle == 90){
 					x1--;
 					x2++;						
@@ -139,21 +142,30 @@ public class Main
 				
 				if(gradient > (px1 & 0xFF) && gradient > (px2 & 0xFF)){
 					peak = gradient;
-					// High threshold
+					
+					// High threshold, indicating definite peak
 					if(peak > HIGH){
 						finalpeak = 255;
 						peak = 0;
 					}else if(peak < LOW){
-						peak = 0;
+						peak = 0; 	// Definitely not a peak
 					}
+					
+					// Every other pixel is a "potential peak", which we check through later. 
 				}
 				
+				/*
+				 * Use two of the colour channels to store peak data about this pixel in a boolean-like way.
+				 * If a pixel is blue, it's a definite peak. If it's red, it's a potential peak
+				 * and if it's black, it's definitely not a peak.
+				 */
 				edgegradientdata.setPixel(x, y, (255 << 24) | (peak << 8) | finalpeak);
 			}
 				
 		}
 		BufferedImageVis.BufferedImageView img = new BufferedImageVis.BufferedImageView(edgegradientdata.toImage());
-		// Low threshold
+		
+		// Determine which of the potential peaks are indeed peaks.
 		boolean more;
 		do{
 			more = false;
@@ -162,13 +174,14 @@ public class Main
 					
 					int pixel = edgegradientdata.getPixel(x, y);
 					
+					// If we are a peak, any neighbouring potential peaks are made into peaks.
 					if((pixel & 0xFF) == 255){
 						for(int p = -1; p < 1; p++){
 							for(int q = -1; q < 1; q++){
 								int neighbour = edgegradientdata.getPixel(x+p, y+q);
 								
 								if(((neighbour >> 8) & 0xFF) > 0){
-									neighbour = (255 << 24) | 255;
+									neighbour = (255 << 24) | 255; 	// Blue is a peak.
 									edgegradientdata.setPixel(x+p, y+q, neighbour);
 									more = true;
 								}
@@ -179,12 +192,14 @@ public class Main
 			}
 		}while(more);
 		
-				
+		
+		// Clear out remaining potential peaks that have lost their potential ;(
 		for(int y = 1; y < edgegradientdata.height-1; y++){
 			for(int x = 1; x < edgegradientdata.width-1; x++){
 				
 				int pixel = edgegradientdata.getPixel(x, y);
 				
+				// Expand any peaks out by 1px to fill small gaps.
 				if((pixel & 0xFF) != 0){
 					for(int p = -1; p < 1; p++)
 						for(int q = -1; q < 1; q++)	
@@ -197,8 +212,7 @@ public class Main
 		
 		System.out.println("Canny complete");
 		
-		img.setImage(edgegradientdata.toImage());	
+		img.setImage(edgegradientdata.toImage());
 		
 	}
-
 }

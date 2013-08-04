@@ -33,3 +33,4 @@ local.properties
 *.swp
 /build
 Thumbs.db
+SnapVoteAlgorithm/config.properties
