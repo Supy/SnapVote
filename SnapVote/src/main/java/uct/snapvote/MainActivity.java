@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import uct.snapvote.filter.BaseRegionFilter;
+import uct.snapvote.filter.InvertTRF;
 import uct.snapvote.util.DebugTimer;
 
 public class MainActivity extends Activity {
@@ -58,9 +59,28 @@ public class MainActivity extends Activity {
 
                 ImageByteBuffer blurred = new ImageByteBuffer(grayscale.getWidth(), grayscale.getHeight());
 
-                BaseRegionFilter bf = new BaseRegionFilter(grayscale, blurred);
-                bf.process();
+                //BaseRegionFilter bf = new BaseRegionFilter(grayscale, blurred);
+                //bf.process();
 
+
+                int halfy = grayscale.getHeight()/2;
+
+
+                InvertTRF trf1 = new InvertTRF(grayscale, blurred, 0, 0, grayscale.getWidth(), halfy);
+                InvertTRF trf2 = new InvertTRF(grayscale, blurred, 0, halfy, grayscale.getWidth(), halfy);
+
+                Thread ti1 = new Thread(trf1);
+                Thread ti2 = new Thread(trf2);
+
+                ti1.start();
+                ti2.start();
+
+                try {
+                    ti1.join();
+                    ti2.join();
+                } catch (Exception e) {
+                    //lollzies
+                }
 
 
                 timer.printout("basefilter.process");
