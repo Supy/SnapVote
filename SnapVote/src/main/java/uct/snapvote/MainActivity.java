@@ -100,7 +100,7 @@ public class MainActivity extends Activity {
             if(resultCode == RESULT_OK){
                 Log.d("SnapVote", "Data: "+data.getData());
                 Intent intent = new Intent(this, PreprocessActivity.class);
-                intent.putExtra("ImageURI",data.getDataString());
+                intent.putExtra("ImageUri",data.getDataString());
                 startActivity(intent);
             }else if(resultCode == RESULT_CANCELED){
                 // Do nothing.
@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
             if(resultCode == RESULT_OK) {
                 Log.d("SnapVote", "Data: "+data.getData());
                 Intent intent = new Intent(this, PreprocessActivity.class);
-                intent.putExtra("ImageURI",data.getDataString());
+                intent.putExtra("ImageUri",data.getDataString());
                 startActivity(intent);
             } else if (resultCode == RESULT_CANCELED) {
                 // Do nothing
