@@ -119,6 +119,6 @@
             android:id="@+id/btnProcess"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            style="@style/btnStyleBeige"/>
+            style="@style/btnStyleBreakerBay"/>
 
 </RelativeLayout>

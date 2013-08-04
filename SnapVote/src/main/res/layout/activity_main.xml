@@ -19,7 +19,7 @@
             android:layout_alignParentRight="true"
             android:clickable="true"
             android:enabled="true"
-            style="@style/btnStyleBeige"/>
+            style="@style/btnStyleBreakerBay"/>
 
     <LinearLayout
             android:orientation="vertical"
