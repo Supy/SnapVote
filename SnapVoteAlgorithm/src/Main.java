@@ -72,7 +72,6 @@ public class Main
 		System.out.println("Gaussian Blur complete ");
 		
 		FastImage edgegradientdata = new FastImage(gaussiandata.width, gaussiandata.height, null);
-		
 		// APPLY SOBEL
 		for (int y = 1; y < gaussiandata.height-1; y++)
 		{
@@ -87,9 +86,9 @@ public class Main
 				
 				int Gm = ((int) Math.sqrt(Gx*Gx + Gy*Gy));	
 
-				double angle = Math.atan2(Gy,Gx);					
-				float degrees = (float) (((angle * 180) / Math.PI) + 22.5f);
+				double angle = Math.atan2(Gy,Gx);	
 				
+				float degrees = Math.abs((float) (((angle * 180) / Math.PI) + 22.5f));
 				int acat = 0;
 				if (degrees < 180) acat = 135;
 				if (degrees < 135) acat = 90;
@@ -101,9 +100,7 @@ public class Main
 			}
 		}
 		
-		System.out.println("Sobel complete");
-		
-		final int HIGH = 190;
+		final int HIGH = 150;
 		final int LOW = 70;
 		
 		for(int y = 1; y < edgegradientdata.height-1; y++){
@@ -180,7 +177,6 @@ public class Main
 					}
 				}
 			}
-			img.setImage(edgegradientdata.toImage());
 		}while(more);
 		
 				
@@ -189,11 +185,17 @@ public class Main
 				
 				int pixel = edgegradientdata.getPixel(x, y);
 				
-				if((pixel >> 8 & 0xFF) != 0){
-					edgegradientdata.setPixel(x, y, (255 << 24) | 0);
+				if((pixel & 0xFF) != 0){
+					for(int p = -1; p < 1; p++)
+						for(int q = -1; q < 1; q++)	
+							edgegradientdata.setPixel(x+p, y+q, (255 << 24) | 255);
+				}else{
+					edgegradientdata.setPixel(x, y, (255 << 24) | 0);		
 				}
 			}
 		}
+		
+		System.out.println("Canny complete");
 		
 		img.setImage(edgegradientdata.toImage());	
 		
