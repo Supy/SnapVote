@@ -43,7 +43,7 @@ public class PreprocessActivity extends Activity {
             }
         });
 
-        //load up thumbnail
+        //load up thumbnail - TODO: move to an asynx task to remove awkward lag
         loadThumbnail(uristr);
     }
 
