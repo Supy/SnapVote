@@ -22,60 +22,49 @@
                 android:src="@drawable/ic_launcher"
                 android:padding="5dp"/>
 
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Select colours to seach for:"
-                android:id="@+id/txtColorSearch"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentLeft="true"
-                android:layout_marginTop="10dp"/>
-
         <RelativeLayout
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
+                android:layout_height="wrap_content"
                 android:layout_alignLeft="@+id/txtColorSearch"
                 android:layout_below="@+id/txtColorSearch"
                 android:background="#fff"
+                android:padding="20dp"
+                android:layout_marginTop="20dp"
                 >
 
             <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/imgRedChoice"
-                    android:layout_marginTop="26dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentLeft="true"
-                    android:layout_marginLeft="19dp"
-                    android:src="@drawable/red"/>
+                    android:src="@drawable/red"
+                    android:layout_below="@+id/txtColorSearch"
+                    android:layout_alignLeft="@+id/txtColorSearch"
+                    android:layout_marginTop="20dp"/>
 
             <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/imgBlueChoice"
                     android:src="@drawable/blue"
-                    android:layout_below="@+id/imgRedChoice"
-                    android:layout_alignLeft="@+id/imgRedChoice"
-                    android:layout_marginTop="15dp"/>
+                    android:layout_alignTop="@+id/chkRedChoice"
+                    android:layout_centerHorizontal="true"/>
 
             <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/imgGreenChoice"
                     android:src="@drawable/green"
-                    android:layout_below="@+id/imgBlueChoice"
-                    android:layout_alignLeft="@+id/imgBlueChoice"
-                    android:layout_marginTop="15dp"/>
+                    android:layout_marginTop="11dp"
+                    android:layout_below="@+id/imgRedChoice"
+                    android:layout_toLeftOf="@+id/chkRedChoice"/>
 
             <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/imgBlackChoice"
                     android:src="@drawable/black"
-                    android:layout_alignLeft="@+id/imgGreenChoice"
-                    android:layout_marginTop="15dp"
-                    android:layout_below="@+id/imgGreenChoice"/>
+                    android:layout_alignTop="@+id/chkGreenChoice"
+                    android:layout_centerHorizontal="true"/>
 
             <CheckBox
                     android:layout_width="wrap_content"
@@ -110,17 +99,26 @@
                     android:layout_alignTop="@+id/imgBlackChoice"
                     android:layout_toRightOf="@+id/imgBlackChoice"/>
 
-            <Button
+            <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Process!"
-                    android:id="@+id/btnProcess"
-                    android:layout_alignParentBottom="true"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="22dp"
-                    />
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Select colours to seach for:"
+                    android:id="@+id/txtColorSearch"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentLeft="true"/>
+
         </RelativeLayout>
 
     </LinearLayout>
+
+    <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Process!"
+            android:id="@+id/btnProcess"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            style="@style/btnStyleBeige"/>
 
 </RelativeLayout>
