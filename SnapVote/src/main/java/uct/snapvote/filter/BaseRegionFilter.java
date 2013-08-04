@@ -17,7 +17,7 @@ public class BaseRegionFilter extends BaseFilter {
         this.srcy = srcy;
     }
 
-    public void process(ImageByteBuffer source, ImageByteBuffer destination) {
+    public void process() {
         for(int y=srcy;y<srcheight;y++)
             for(int x=srcx;x<srcwidth;x++)
                 destination.set(x,y, source.get(x,y));
