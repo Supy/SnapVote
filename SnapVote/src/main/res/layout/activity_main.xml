@@ -21,38 +21,27 @@
             android:enabled="true"
             />
 
-<<<<<<< HEAD
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Previous polls:"
-            android:id="@+id/txtPreviousPolls"
-            android:layout_marginTop="31dp"
-            android:layout_below="@+id/btnNewPoll"
-            android:layout_alignLeft="@+id/btnNewPoll"/>
+<TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Previous polls:"
+        android:id="@+id/txtPreviousPolls"
+        android:layout_marginTop="31dp"
+        android:layout_below="@+id/btnNewPoll"
+        android:layout_alignLeft="@+id/btnNewPoll"/>
 
-    <ListView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/listPreviousPolls"
-            android:layout_below="@+id/txtPreviousPolls"
-            android:layout_alignParentLeft="true"
-            android:clickable="true"
-            android:choiceMode="singleChoice"
-            android:divider="@android:color/black"
-            android:dividerHeight="1dp"
-            android:drawSelectorOnTop="false"
-            android:background="#fff"/>
+<ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/listPreviousPolls"
+        android:layout_below="@+id/txtPreviousPolls"
+        android:layout_alignParentLeft="true"
+        android:clickable="true"
+        android:choiceMode="singleChoice"
+        android:divider="@android:color/black"
+        android:dividerHeight="1dp"
+        android:drawSelectorOnTop="false"
+        android:background="#fff"/>
 
-=======
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="LoadImage"
-            android:id="@+id/btn_load_image"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"
-            android:onClick="loadImage"/>
->>>>>>> 137fdebf055f0acd157318b8778d582f9f45ef0c
 </RelativeLayout>

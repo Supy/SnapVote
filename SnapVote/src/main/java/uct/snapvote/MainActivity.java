@@ -1,15 +1,18 @@
 package uct.snapvote;
 
-<<<<<<< HEAD
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapRegionDecoder;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.Editable;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -19,9 +22,16 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import uct.snapvote.filter.InvertTRF;
+import uct.snapvote.util.DebugTimer;
 
 public class MainActivity extends Activity {
 
@@ -31,42 +41,13 @@ public class MainActivity extends Activity {
     private Button btnNewPoll;
 
     private static Uri filePath;
-=======
-import android.content.ContentResolver;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.BitmapRegionDecoder;
-import android.graphics.Rect;
-import android.net.Uri;
-import android.os.Bundle;
-import android.app.Activity;
-import android.os.Environment;
-import android.util.Log;
-import android.view.Menu;
-import android.view.View;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import uct.snapvote.filter.BaseRegionFilter;
-import uct.snapvote.filter.InvertTRF;
-import uct.snapvote.util.DebugTimer;
-
-public class MainActivity extends Activity {
-
-
->>>>>>> 137fdebf055f0acd157318b8778d582f9f45ef0c
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-<<<<<<< HEAD
         listPreviousPolls = (ListView) findViewById(R.id.listPreviousPolls);
         btnNewPoll = (Button) findViewById(R.id.btnNewPoll);
 
@@ -106,8 +87,6 @@ public class MainActivity extends Activity {
         });
     }
 
-=======
->>>>>>> 137fdebf055f0acd157318b8778d582f9f45ef0c
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -115,7 +94,6 @@ public class MainActivity extends Activity {
         return true;
     }
 
-<<<<<<< HEAD
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == CAMERA_IMAGE_REQUEST_CODE){
             if(resultCode == RESULT_OK){
@@ -156,16 +134,15 @@ public class MainActivity extends Activity {
 
         return Uri.fromFile(mediaFile);
     }
-=======
+
     public void loadImage(View view){
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        startActivityForResult(intent, IntCode.LOADIMAGE);
+        startActivityForResult(intent, 101);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == IntCode.LOADIMAGE && resultCode == RESULT_OK){
+    protected void onActivityResultDerp(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 101 && resultCode == RESULT_OK){
             try {
 
                 DebugTimer timer = new DebugTimer();
@@ -296,5 +273,4 @@ public class MainActivity extends Activity {
         return gbuffer;
     }
 
->>>>>>> 137fdebf055f0acd157318b8778d582f9f45ef0c
 }
