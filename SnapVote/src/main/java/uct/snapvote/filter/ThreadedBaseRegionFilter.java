@@ -10,6 +10,11 @@ public class ThreadedBaseRegionFilter extends BaseRegionFilter implements Runnab
     public float progress = 0;
     private int maxprogress;
 
+    public ThreadedBaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination) {
+        super(source, destination);
+        maxprogress = srcwidth * srcheight;
+    }
+
     public ThreadedBaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination, int srcx, int srcy, int srcwidth, int srcheight) {
         super(source, destination, srcx, srcy, srcwidth, srcheight);
         maxprogress = srcwidth * srcheight;
@@ -23,4 +28,9 @@ public class ThreadedBaseRegionFilter extends BaseRegionFilter implements Runnab
                 progress++;
             }
     }
+
+    public float getProgress() {
+        return (float)progress / maxprogress;
+    }
+
 }

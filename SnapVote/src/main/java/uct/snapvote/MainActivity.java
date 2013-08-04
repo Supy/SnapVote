@@ -16,12 +16,10 @@ import android.view.View;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import uct.snapvote.filter.BaseFilter;
 import uct.snapvote.filter.BaseRegionFilter;
 import uct.snapvote.util.DebugTimer;
 
@@ -60,12 +58,9 @@ public class MainActivity extends Activity {
 
                 ImageByteBuffer blurred = new ImageByteBuffer(grayscale.getWidth(), grayscale.getHeight());
 
-                BaseFilter bf = new BaseFilter(grayscale, blurred);
+                BaseRegionFilter bf = new BaseRegionFilter(grayscale, blurred);
                 bf.process();
 
-                // This is how the region filter is done
-                //BaseRegionFilter brf = new BaseRegionFilter(grayscale, blurred, 0,0,1000,1000);
-                //brf.process();
 
 
                 timer.printout("basefilter.process");

@@ -5,12 +5,19 @@ import uct.snapvote.ImageByteBuffer;
 /**
  * Created by Ben on 8/3/13.
  */
-public class BaseRegionFilter extends BaseFilter {
+public class BaseRegionFilter {
 
+    ImageByteBuffer source, destination;
     int srcx, srcy, srcheight, srcwidth;
 
+    public BaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination) {
+        this.srcheight = source.getHeight();
+        this.srcwidth = source.getWidth();
+        this.srcx = 0;
+        this.srcy = 0;
+    }
+
     public BaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination, int srcx, int srcy, int srcwidth, int srcheight) {
-        super(source, destination);
         this.srcheight = srcheight;
         this.srcwidth = srcwidth;
         this.srcx = srcx;

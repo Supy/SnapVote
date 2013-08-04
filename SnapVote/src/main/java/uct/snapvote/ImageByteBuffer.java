@@ -28,12 +28,15 @@ public class ImageByteBuffer {
 
     // BITMAAAAAAAAAAAAAAAAAAP
     //  TODO: speed this up. May require changing backing array type
+    //  Not really necessary as the app doesn't need to output anything
     public Bitmap createBitmap() {
         Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);  // should attempt to keep all colour data
 
         for(int y = 0;y<height;y++) {
             for(int x = 0;x<width;x++) {
-                bm.setPixel(x,y, 0xff000000 + (data[y][x] & 0xFF)); // currently creates a 'Bluescale' image
+                int g = data[y][x] & 0xFF;
+                int gg = 0xff000000 | g | g << 8 | g << 16;
+                bm.setPixel(x,y, gg);
             }
         }
 
