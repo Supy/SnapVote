@@ -9,102 +9,118 @@
     tools:context=".PreprocessActivity"
     android:background="@color/background_color">
 
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Select colours to seach for:"
-            android:id="@+id/txtColorSearch"
-            android:layout_marginTop="33dp"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"/>
-
-    <RelativeLayout
+    <LinearLayout
+            android:orientation="vertical"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/txtColorSearch"
-            android:layout_below="@+id/txtColorSearch"
-            android:background="#fff"
-            >
+            android:layout_height="fill_parent">
 
         <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="150dp"
+                android:id="@+id/imageView"
+                android:background="#ffffff"
+                android:src="@drawable/ic_launcher"
+                android:padding="5dp"/>
+
+        <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/imgRedChoice"
-                android:layout_marginTop="26dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Select colours to seach for:"
+                android:id="@+id/txtColorSearch"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentLeft="true"
-                android:layout_marginLeft="19dp"
-                android:src="@drawable/red"/>
+                android:layout_marginTop="10dp"/>
 
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imgBlueChoice"
-                android:src="@drawable/blue"
-                android:layout_below="@+id/imgRedChoice"
-                android:layout_alignLeft="@+id/imgRedChoice"
-                android:layout_marginTop="15dp"/>
+        <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_alignLeft="@+id/txtColorSearch"
+                android:layout_below="@+id/txtColorSearch"
+                android:background="#fff"
+                >
 
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imgGreenChoice"
-                android:src="@drawable/green"
-                android:layout_below="@+id/imgBlueChoice"
-                android:layout_alignLeft="@+id/imgBlueChoice"
-                android:layout_marginTop="15dp"/>
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imgRedChoice"
+                    android:layout_marginTop="26dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginLeft="19dp"
+                    android:src="@drawable/red"/>
 
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imgBlackChoice"
-                android:src="@drawable/black"
-                android:layout_alignLeft="@+id/imgGreenChoice"
-                android:layout_marginTop="15dp"
-                android:layout_below="@+id/imgGreenChoice"/>
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imgBlueChoice"
+                    android:src="@drawable/blue"
+                    android:layout_below="@+id/imgRedChoice"
+                    android:layout_alignLeft="@+id/imgRedChoice"
+                    android:layout_marginTop="15dp"/>
 
-        <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/chkRedChoice"
-                android:layout_alignTop="@+id/imgRedChoice"
-                android:layout_toRightOf="@+id/imgRedChoice"
-                android:checked="true"
-                />
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imgGreenChoice"
+                    android:src="@drawable/green"
+                    android:layout_below="@+id/imgBlueChoice"
+                    android:layout_alignLeft="@+id/imgBlueChoice"
+                    android:layout_marginTop="15dp"/>
 
-        <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/chkBlueChoice"
-                android:checked="true"
-                android:layout_alignTop="@+id/imgBlueChoice"
-                android:layout_toRightOf="@+id/imgBlueChoice"/>
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imgBlackChoice"
+                    android:src="@drawable/black"
+                    android:layout_alignLeft="@+id/imgGreenChoice"
+                    android:layout_marginTop="15dp"
+                    android:layout_below="@+id/imgGreenChoice"/>
 
-        <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/chkGreenChoice"
-                android:checked="true"
-                android:layout_alignTop="@+id/imgGreenChoice"
-                android:layout_toRightOf="@+id/imgGreenChoice"/>
+            <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chkRedChoice"
+                    android:layout_alignTop="@+id/imgRedChoice"
+                    android:layout_toRightOf="@+id/imgRedChoice"
+                    android:checked="true"
+                    />
 
-        <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/chkBlackChoice"
-                android:checked="true"
-                android:layout_alignTop="@+id/imgBlackChoice"
-                android:layout_toRightOf="@+id/imgBlackChoice"/>
+            <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chkBlueChoice"
+                    android:checked="true"
+                    android:layout_alignTop="@+id/imgBlueChoice"
+                    android:layout_toRightOf="@+id/imgBlueChoice"/>
 
-        <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Process!"
-                android:id="@+id/btnProcess"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="22dp"
-                />
-    </RelativeLayout>
+            <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chkGreenChoice"
+                    android:checked="true"
+                    android:layout_alignTop="@+id/imgGreenChoice"
+                    android:layout_toRightOf="@+id/imgGreenChoice"/>
+
+            <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chkBlackChoice"
+                    android:checked="true"
+                    android:layout_alignTop="@+id/imgBlackChoice"
+                    android:layout_toRightOf="@+id/imgBlackChoice"/>
+
+            <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Process!"
+                    android:id="@+id/btnProcess"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="22dp"
+                    />
+        </RelativeLayout>
+
+    </LinearLayout>
+
 </RelativeLayout>

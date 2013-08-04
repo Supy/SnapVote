@@ -36,6 +36,7 @@ import uct.snapvote.util.DebugTimer;
 public class MainActivity extends Activity {
 
     private static final int CAMERA_IMAGE_REQUEST_CODE = 101;
+    private static final int GALLERY_IMAGE_REQUEST_CODE = 102;
 
     private ListView listPreviousPolls;
     private Button btnNewPoll;
@@ -80,7 +81,7 @@ public class MainActivity extends Activity {
                             }
                         }).setNegativeButton("Gallery", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                // Do nothing.
+                                launchGallery();
                             }
                 }).show();
             }
@@ -99,11 +100,24 @@ public class MainActivity extends Activity {
             if(resultCode == RESULT_OK){
                 Log.d("SnapVote", "Data: "+data.getData());
                 Intent intent = new Intent(this, PreprocessActivity.class);
+                intent.putExtra("ImageURI",data.getDataString());
                 startActivity(intent);
             }else if(resultCode == RESULT_CANCELED){
                 // Do nothing.
             }else{
                 Toast.makeText(getApplicationContext(), "Image capture failed.", Toast.LENGTH_LONG).show();
+            }
+        }
+        else if(requestCode == GALLERY_IMAGE_REQUEST_CODE) {
+            if(resultCode == RESULT_OK) {
+                Log.d("SnapVote", "Data: "+data.getData());
+                Intent intent = new Intent(this, PreprocessActivity.class);
+                intent.putExtra("ImageURI",data.getDataString());
+                startActivity(intent);
+            } else if (resultCode == RESULT_CANCELED) {
+                // Do nothing
+            } else {
+                Toast.makeText(getApplicationContext(), "Gallery intent failed.", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -114,31 +128,10 @@ public class MainActivity extends Activity {
         startActivityForResult(intent, CAMERA_IMAGE_REQUEST_CODE);
     }
 
-    private Uri getDestinationFilePath(){
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "SnapVote polls");
-
-        // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists()){
-            if (!mediaStorageDir.mkdirs()){
-                Log.d("SnapVote", "Failed to create image directory.");
-                return null;
-            }
-        }
-
-        Log.d("SnapVote", "Saving image to "+mediaStorageDir.getPath());
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "poll_"+ timeStamp + ".jpg");
-
-        return Uri.fromFile(mediaFile);
-    }
-
-    public void loadImage(View view){
+    private void launchGallery(){
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        startActivityForResult(intent, 101);
+        startActivityForResult(intent, GALLERY_IMAGE_REQUEST_CODE);
     }
 
     protected void onActivityResultDerp(int requestCode, int resultCode, Intent data) {
