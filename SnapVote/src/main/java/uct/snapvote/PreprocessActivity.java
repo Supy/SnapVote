@@ -1,10 +1,19 @@
 package uct.snapvote;
 
+import android.content.ContentResolver;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
+import android.widget.ImageView;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class PreprocessActivity extends Activity {
 
@@ -14,15 +23,72 @@ public class PreprocessActivity extends Activity {
         setContentView(R.layout.activity_preprocess);
         // Show the Up button in the action bar.
         setupActionBar();
+
+        //extract image url from bundle
+        Log.d("ImageURI", getIntent().getStringExtra("ImageURI"));
+        String uristr = getIntent().getStringExtra("ImageURI");
+
+        //load up thumbnail
+        loadThumbnail(uristr);
     }
 
     /**
      * Set up the {@link android.app.ActionBar}.
      */
     private void setupActionBar() {
-        
         getActionBar().setDisplayHomeAsUpEnabled(true);
-        
+    }
+
+    // TODO: threaded
+    // TODO: check the width and height things, not sure if appropriate, seems to work well though
+    private void loadThumbnail(String uri) {
+
+        Uri contentURI = Uri.parse(uri);
+        ContentResolver cr = getContentResolver();
+
+        InputStream in = null;
+        try {
+            in = cr.openInputStream(contentURI);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        // read image attributes
+        BitmapFactory.Options iOptions = new BitmapFactory.Options();
+        iOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(in,null,iOptions);
+        int imageHeight = iOptions.outHeight;
+        int imageWidth = iOptions.outWidth;
+
+        try {
+            in = cr.openInputStream(contentURI);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        iOptions.inPreferredConfig = Bitmap.Config.RGB_565;
+        int inSampleSize = 1;
+
+        if (imageHeight > 200) {
+            inSampleSize = Math.round((float)imageHeight / (float)200);
+        }
+
+        int expectedWidth = imageWidth / inSampleSize;
+
+        if (expectedWidth > 400) {
+            //if(Math.round((float)width / (float)reqWidth) > inSampleSize) // If bigger SampSize..
+            inSampleSize = Math.round((float)imageWidth / (float)400);
+        }
+
+
+        iOptions.inSampleSize = inSampleSize;
+
+        // Decode bitmap with inSampleSize set
+        iOptions.inJustDecodeBounds = false;
+
+        ImageView mImage = (ImageView) findViewById(R.id.imageView);
+        mImage.setImageBitmap(BitmapFactory.decodeStream(in, null, iOptions));
+
     }
 
     @Override

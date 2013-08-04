@@ -100,6 +100,7 @@ public class MainActivity extends Activity {
             if(resultCode == RESULT_OK){
                 Log.d("SnapVote", "Data: "+data.getData());
                 Intent intent = new Intent(this, PreprocessActivity.class);
+                intent.putExtra("ImageURI",data.getDataString());
                 startActivity(intent);
             }else if(resultCode == RESULT_CANCELED){
                 // Do nothing.
@@ -111,6 +112,7 @@ public class MainActivity extends Activity {
             if(resultCode == RESULT_OK) {
                 Log.d("SnapVote", "Data: "+data.getData());
                 Intent intent = new Intent(this, PreprocessActivity.class);
+                intent.putExtra("ImageURI",data.getDataString());
                 startActivity(intent);
             } else if (resultCode == RESULT_CANCELED) {
                 // Do nothing
@@ -131,29 +133,6 @@ public class MainActivity extends Activity {
         intent.setType("image/*");
         startActivityForResult(intent, GALLERY_IMAGE_REQUEST_CODE);
     }
-
-    private Uri getDestinationFilePath(){
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "SnapVote polls");
-
-        // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists()){
-            if (!mediaStorageDir.mkdirs()){
-                Log.d("SnapVote", "Failed to create image directory.");
-                return null;
-            }
-        }
-
-        Log.d("SnapVote", "Saving image to "+mediaStorageDir.getPath());
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "poll_"+ timeStamp + ".jpg");
-
-        return Uri.fromFile(mediaFile);
-    }
-
-
 
     protected void onActivityResultDerp(int requestCode, int resultCode, Intent data) {
         if (requestCode == 101 && resultCode == RESULT_OK){
