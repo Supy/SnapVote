@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import uct.snapvote.filter.BaseFilter;
+import uct.snapvote.filter.BaseRegionFilter;
+import uct.snapvote.util.DebugTimer;
 
 public class MainActivity extends Activity {
 
@@ -50,13 +52,27 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == IntCode.LOADIMAGE && resultCode == RESULT_OK){
             try {
+
+                DebugTimer timer = new DebugTimer();
                 ImageByteBuffer grayscale = readAwesomeGrayscale(data.getDataString());
 
-                long t1 = System.currentTimeMillis();
+                timer.printout("readawesomegrayscale");
 
-                //ImageByteBuffer blurred = new ImageByteBuffer(grayscale.getWidth(), grayscale.getHeight());
+                ImageByteBuffer blurred = new ImageByteBuffer(grayscale.getWidth(), grayscale.getHeight());
 
-                Bitmap blueimg = grayscale.createBitmap();
+                BaseFilter bf = new BaseFilter(grayscale, blurred);
+                bf.process();
+
+                // This is how the region filter is done
+                //BaseRegionFilter brf = new BaseRegionFilter(grayscale, blurred, 0,0,1000,1000);
+                //brf.process();
+
+
+                timer.printout("basefilter.process");
+
+                Bitmap blueimg = blurred.createBitmap();
+
+                timer.printout("createBitmap()");
 
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
@@ -69,9 +85,9 @@ public class MainActivity extends Activity {
 
                 fo.close();
 
-                long t2 = System.currentTimeMillis();
 
-                Log.i("main.onactivityresult"," creating bitmap: elapsed: " + (t2-t1));
+                timer.printout("saving bitmap");
+
 
 
 
