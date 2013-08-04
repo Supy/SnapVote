@@ -54,15 +54,24 @@ public class MainActivity extends Activity {
 
                 long t1 = System.currentTimeMillis();
 
-                ImageByteBuffer blurred = new ImageByteBuffer(grayscale.getWidth(), grayscale.getHeight());
+                //ImageByteBuffer blurred = new ImageByteBuffer(grayscale.getWidth(), grayscale.getHeight());
 
+                Bitmap blueimg = grayscale.createBitmap();
 
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
+                blueimg.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
 
+                File f = new File(Environment.getExternalStorageDirectory() + File.separator + "test.jpg");
+                f.createNewFile();
+                FileOutputStream fo = new FileOutputStream(f);
+                fo.write(bytes.toByteArray());
+
+                fo.close();
 
                 long t2 = System.currentTimeMillis();
 
-                Log.d("derp","elapsed: " + (t2-t1));
+                Log.i("main.onactivityresult"," creating bitmap: elapsed: " + (t2-t1));
 
 
 

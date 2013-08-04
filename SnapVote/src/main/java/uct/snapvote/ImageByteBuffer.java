@@ -1,5 +1,7 @@
 package uct.snapvote;
 
+import android.graphics.Bitmap;
+
 /**
  * Created by Ben on 8/3/13.
  */
@@ -23,4 +25,19 @@ public class ImageByteBuffer {
 
     // UNSAFE ACCESSOR
     public byte[][] getRealData() {return data;}
+
+    // BITMAAAAAAAAAAAAAAAAAAP
+    //  TODO: speed this up. May require changing backing array type
+    public Bitmap createBitmap() {
+        Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);  // should attempt to keep all colour data
+
+        for(int y = 0;y<height;y++) {
+            for(int x = 0;x<width;x++) {
+                bm.setPixel(x,y, 0xff000000 + (data[y][x] & 0xFF)); // currently creates a 'Bluescale' image
+            }
+        }
+
+        return bm;
+    }
+
 }
