@@ -86,29 +86,62 @@ public class Main
 						(gaussiandata.getPixel(x+1, y-1) & 0xFF) + 2*(gaussiandata.getPixel(x+1, y) & 0xFF) +(gaussiandata.getPixel(x+1, y+1) & 0xFF);
 				
 				int Gm = ((int) Math.sqrt(Gx*Gx + Gy*Gy));	
-				
-				//minimum threshold
-				if(Gm > 100)
-				{
-					
-					double angle = Math.atan2(Gy,Gx);					
-					float degrees = (float) (((angle * 180) / Math.PI) + 22.5f);					
-					if (degrees < 0) degrees += 180;
-					
-					int acat = 3;
-					if (degrees < 180) acat = 135;
-					if (degrees < 135) acat = 90;
-					if (degrees < 90) acat = 45;
-					if (degrees < 45) acat = 0;
 
-					if (Gm > 255) Gm = 255;
-					edgegradientdata.setPixel(x,y, Gm << 24 | (acat+110));
-				}
-				else
-				{
-					edgegradientdata.setPixel(x,y, 0);
-				}				
+				double angle = Math.atan2(Gy,Gx);					
+				float degrees = (float) (((angle * 180) / Math.PI) + 22.5f);
+				
+				int acat = 0;
+				if (degrees < 180) acat = 135;
+				if (degrees < 135) acat = 90;
+				if (degrees < 90) acat = 45;
+				if (degrees < 45) acat = 0;
+
+				if (Gm > 255) Gm = 255;
+				edgegradientdata.setPixel(x,y, (acat << 24) | Gm);			
 			}
+		}
+		
+		for(int y = 1; y < edgegradientdata.height-1; y++){
+			for(int x = 1; x < edgegradientdata.width-1; x++){
+				int pixel = edgegradientdata.getPixel(x, y);
+				int gradient = pixel & 0xFF;
+				int edge = 0;
+				
+				if(gradient > 0){
+					int angle = (pixel >> 24) & 0xFF;
+					int x1 = x;
+					int x2 = x;
+					int y1 = y;
+					int y2 = y;
+					
+					if(angle == 0){
+						x1--;
+						x2++;						
+					}else if(angle == 45){
+						x1--;
+						x2++;
+						y1--;
+						y2++;						
+					}else if(angle == 90){
+						y1--;
+						y2++;
+					}else{
+						x1--;
+						x2++;
+						y1++;
+						y2--;
+					}
+					
+					int px1 = edgegradientdata.getPixel(x1, y1);
+					int px2 = edgegradientdata.getPixel(x2, y2);
+					
+					if(gradient > (px1 & 0xFF) && gradient > (px2 & 0xFF))
+						edge = 255;
+				}
+				
+				edgegradientdata.setPixel(x, y, (255 << 24) | edge);
+			}
+				
 		}
 		
 		System.out.println("Sobel complete");				

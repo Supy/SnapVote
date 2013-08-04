@@ -108,8 +108,6 @@ public class FastImage
 	public void setPixel(int x, int y, int i)
 	{
 		data[y][x] = i;
-	}
-	
-	
+	}	
 	
 }

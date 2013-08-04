@@ -8,6 +8,10 @@
         android:minSdkVersion="11"
         android:targetSdkVersion="16" />
 
+    <uses-feature android:name="android.hardware.camera" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -21,6 +25,14 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="uct.snapvote.PreprocessActivity"
+            android:label="@string/title_activity_preprocess"
+            android:parentActivityName="uct.snapvote.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="uct.snapvote.MainActivity" />
         </activity>
     </application>
 

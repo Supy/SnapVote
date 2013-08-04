@@ -6,11 +6,42 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="@color/background_color">
+
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New poll"
+            android:id="@+id/btnNewPoll"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:clickable="true"
+            android:enabled="true"
+            />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Previous polls:"
+            android:id="@+id/txtPreviousPolls"
+            android:layout_marginTop="31dp"
+            android:layout_below="@+id/btnNewPoll"
+            android:layout_alignLeft="@+id/btnNewPoll"/>
+
+    <ListView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/listPreviousPolls"
+            android:layout_below="@+id/txtPreviousPolls"
+            android:layout_alignParentLeft="true"
+            android:clickable="true"
+            android:choiceMode="singleChoice"
+            android:divider="@android:color/black"
+            android:dividerHeight="1dp"
+            android:drawSelectorOnTop="false"
+            android:background="#fff"/>
 
 </RelativeLayout>
