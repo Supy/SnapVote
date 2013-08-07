@@ -104,11 +104,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         in = cr.openInputStream(contentURI);
         BitmapRegionDecoder regDec = BitmapRegionDecoder.newInstance(in, false);
 
-        // Lets allocate 20MB of memory for image loading.
-        int maxPixels = 30 * 1024 * 1024 / 4;
-        int stripHeight = maxPixels / imageWidth;
-
-        publishProgress("1", String.format("Maximum pixels: %d. Strip height: %d", maxPixels, stripHeight) );
+        int stripHeight = 500;
 
         int num_layers = (stripHeight > imageHeight) ? 1 : (imageHeight /  stripHeight);
         int rem_layer = imageHeight % stripHeight;
