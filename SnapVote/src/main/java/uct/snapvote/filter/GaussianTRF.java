@@ -7,18 +7,18 @@ import uct.snapvote.ImageByteBuffer;
 /**
  * Created by Ben on 8/7/13.
  */
-public class GuassianTRF extends ThreadedBaseRegionFilter {
+public class GaussianTRF extends ThreadedBaseRegionFilter {
 
     private int radius;
-    private double[][] guassian;
+    private double[][] gaussian;
 
 
-    public GuassianTRF(ImageByteBuffer source, ImageByteBuffer destination, int blurradius) {
+    public GaussianTRF(ImageByteBuffer source, ImageByteBuffer destination, int blurradius) {
         super(source, destination);
         setBlurRadius(blurradius);
     }
 
-    public GuassianTRF(ImageByteBuffer source, ImageByteBuffer destination, int x1, int y1, int x2, int y2, int blurradius) {
+    public GaussianTRF(ImageByteBuffer source, ImageByteBuffer destination, int x1, int y1, int x2, int y2, int blurradius) {
         super(source, destination, x1, y1, x2, y2);
         setBlurRadius(blurradius);
     }
@@ -26,11 +26,11 @@ public class GuassianTRF extends ThreadedBaseRegionFilter {
     private void setBlurRadius(int r) {
         radius = r;
 
-        // create guassian
+        // create Gaussian
         float sigma = radius / 2.0f;
         int size = radius*2 +1;
 
-        guassian = new double[size][size];
+        gaussian = new double[size][size];
 
         double [] hkernel = new double[size];
         for (int x =0;x<size;x+=1)
@@ -39,14 +39,14 @@ public class GuassianTRF extends ThreadedBaseRegionFilter {
         double kernelsum = 0;
         for (int y = 0;y< size;y++)
             for (int x = 0;x< size;x++) {
-                guassian[y][x] = hkernel[y] * hkernel[x];
-                kernelsum += guassian[y][x];
+                gaussian[y][x] = hkernel[y] * hkernel[x];
+                kernelsum += gaussian[y][x];
             }
 
         // normalise
         for (int y = 0;y< size;y++)
             for (int x = 0;x< size;x++)
-                guassian[y][x] /= kernelsum;
+                gaussian[y][x] /= kernelsum;
     }
 
     @Override
@@ -66,19 +66,14 @@ public class GuassianTRF extends ThreadedBaseRegionFilter {
                         int rx = x+dx;
 
                         int c = source.get(rx, ry);
-                        total += guassian[radius+dy][radius+dx] * (c & 0xFF);
+                        total += gaussian[radius+dy][radius+dx] * (c & 0xFF);
                     }
                 }
 
                 destination.set(x,y, (byte)((int) total));
-                progress++;
             }
-
-
         }
 
         Log.d("uct.snapvote", "finished " + this.x1 + " " + this.y1);
-
     }
-
 }

@@ -48,7 +48,6 @@ public class SobelTRF extends ThreadedBaseRegionFilter {
                 if (Gm > 255) Gm = 255;
 
                 destination.set(x,y, (byte)Gm);
-                progress++;
             }
         }
 

@@ -15,8 +15,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import uct.snapvote.filter.GuassianTRF;
 import uct.snapvote.filter.PeakFindTRF;
+import uct.snapvote.filter.GaussianTRF;
 import uct.snapvote.filter.SobelTRF;
 import uct.snapvote.util.DebugTimer;
 
@@ -48,31 +48,21 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             DebugTimer dbgtimer = new DebugTimer();
 
             blur(buffer1, buffer2, 2);
-
-            publishProgress("1", "blurred: " + dbgtimer.toString()); dbgtimer.restart();
+            publishProgress("1", "Blur: " + dbgtimer.toString()); dbgtimer.restart();
 
             sobelFilter(buffer2, buffer1, buffer3);
 
-            publishProgress("1", "sobel: " + dbgtimer.toString()); dbgtimer.restart();
-
+            publishProgress("1", "Sobel: " + dbgtimer.toString()); dbgtimer.restart();
             // use the direction info in B3 to identify peaks in B1. put result in B2
             peakFilter(buffer1, buffer2, buffer3);
 
-            publishProgress("1", "peaked: " + dbgtimer.toString()); dbgtimer.restart();
-
-
-
-
-
-
-
-
-
-
+            publishProgress("1", "Peaked: " + dbgtimer.toString()); dbgtimer.restart();
 
             // save to sdcard in order to debug
             Bitmap testimg = buffer2.createBitmap();
-            publishProgress("1", "bitmap: " + dbgtimer.toString()); dbgtimer.restart();
+            publishProgress("1", "Bitmap: " + dbgtimer.toString()); dbgtimer.restart();
+
+
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             testimg.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
             File f = new File(Environment.getExternalStorageDirectory() + File.separator + "test.jpg");
@@ -80,17 +70,13 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             FileOutputStream fo = new FileOutputStream(f);
             fo.write(bytes.toByteArray());
             fo.close();
-            publishProgress("1", "saved: " + dbgtimer.toString()); dbgtimer.restart();
+            publishProgress("1", "Save: " + dbgtimer.toString()); dbgtimer.restart();
 
         } catch (IOException e) {
 
         }
-
-
-
         return 0;
     }
-
 
     private ImageByteBuffer readGrayscale(String datastr) throws IOException {
         // first get content uri of image on phone
@@ -162,14 +148,14 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         return gbuffer;
     }
 
-    private void blur(ImageByteBuffer source, ImageByteBuffer destination, int radius) {
-        int halfy = source.getHeight()/2;
-        int halfx = source.getWidth()/2;
+    private void blur(ImageByteBuffer buffer1, ImageByteBuffer buffer2, int blurRadius) {
+        int halfy = buffer1.getHeight()/2;
+        int halfx = buffer1.getWidth()/2;
 
-        GuassianTRF g1 = new GuassianTRF(source, destination, 2, 2, halfx, halfy, radius);
-        GuassianTRF g2 = new GuassianTRF(source, destination, 2, halfy, halfx, source.getHeight()-2, radius);
-        GuassianTRF g3 = new GuassianTRF(source, destination, halfx, 2, source.getWidth()-2, halfy, radius);
-        GuassianTRF g4 = new GuassianTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2, radius);
+        GaussianTRF g1 = new GaussianTRF(buffer1, buffer2, blurRadius, blurRadius, halfx, halfy, blurRadius);
+        GaussianTRF g2 = new GaussianTRF(buffer1, buffer2, blurRadius, halfy, halfx, buffer1.getHeight()-blurRadius, blurRadius);
+        GaussianTRF g3 = new GaussianTRF(buffer1, buffer2, halfx, blurRadius, buffer1.getWidth()-blurRadius, halfy, blurRadius);
+        GaussianTRF g4 = new GaussianTRF(buffer1, buffer2, halfx, halfy, buffer1.getWidth()-blurRadius, buffer1.getHeight()-blurRadius, blurRadius);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);
@@ -206,10 +192,15 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         t3.start();
         t4.start();
 
+        // Let's just say blurring is 20% of the total time for now ;)
         try { t1.join(); } catch (InterruptedException e) {  }
+        publishProgress("5");
         try { t2.join(); } catch (InterruptedException e) {  }
+        publishProgress("5");
         try { t3.join(); } catch (InterruptedException e) {  }
+        publishProgress("5");
         try { t4.join(); } catch (InterruptedException e) {  }
+        publishProgress("5");
     }
 
     private void peakFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput) {
