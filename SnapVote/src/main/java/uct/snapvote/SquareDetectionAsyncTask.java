@@ -8,9 +8,6 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.util.Log;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -41,7 +38,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             // 1 - image loading
 
-            ImageByteBuffer buffer1 = readAwesomeGrayscale(processActivity.imageUri);
+            ImageByteBuffer buffer1 = readGrayscale(processActivity.imageUri);
             ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
             // blurring
@@ -73,7 +70,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
     }
 
 
-    private ImageByteBuffer readAwesomeGrayscale(String datastr) throws IOException {
+    private ImageByteBuffer readGrayscale(String datastr) throws IOException {
         // first get content uri of image on phone
         Uri contentURI = Uri.parse(datastr);
         ContentResolver cr = processActivity.getContentResolver();
@@ -93,49 +90,53 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         // hurrah now we know how big our grayscale byte buffer is!
         ImageByteBuffer gbuffer = new ImageByteBuffer(imageWidth, imageHeight);
 
-        publishProgress("1", String.format("dimensions read : width: %d height: %d", imageWidth, imageHeight) );
+        publishProgress("1", String.format("Dimensions read - %dx%d", imageWidth, imageHeight) );
 
         // reset input stream
         in = cr.openInputStream(contentURI);
         BitmapRegionDecoder regDec = BitmapRegionDecoder.newInstance(in, false);
 
+        // Lets allocate 20MB of memory for image loading.
+        int maxPixels = 30 * 1024 * 1024 / 4;
+        int stripHeight = maxPixels / imageWidth;
 
-        int stripheight = 500;  // TODO: this should really be determined by looking at max heap size
-        int num_layers = imageHeight / stripheight;
-        int rem_layer = imageHeight % stripheight;
-        Bitmap stripbit;
+        publishProgress("1", String.format("Maximum pixels: %d. Strip height: %d", maxPixels, stripHeight) );
+
+        int num_layers = (stripHeight > imageHeight) ? 1 : (imageHeight /  stripHeight);
+        int rem_layer = imageHeight % stripHeight;
+        Bitmap strip;
 
         BitmapFactory.Options postOptions = new BitmapFactory.Options();
         preOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
         for(int i=0;i<num_layers;i++) {
-            Rect r = new Rect(0, i*stripheight,imageWidth, (i+1)*stripheight);
-            stripbit = regDec.decodeRegion(r, postOptions);
-            int[] pixdata = new int[stripheight*imageWidth];
-            stripbit.getPixels(pixdata, 0, imageWidth, 0,0,imageWidth, stripheight);
+            Rect r = new Rect(0, i* stripHeight,imageWidth, (i+1)* stripHeight);
+            strip= regDec.decodeRegion(r, postOptions);
+            int[] pixelData = new int[ stripHeight*imageWidth];
+            strip.getPixels(pixelData, 0, imageWidth, 0,0,imageWidth,  stripHeight);
 
-            for(int y=0;y<stripheight;y++)
+            for(int y=0;y< stripHeight;y++)
                 for(int x = 0;x<imageWidth;x++) {
-                    int pix = pixdata[y*imageWidth+x];
+                    int pix = pixelData[y*imageWidth+x];
                     int g = ((pix & 0xFF) + ((pix >> 8) & 0xFF) + ((pix >> 16) & 0xFF))/3;
-                    gbuffer.set(x, i*stripheight+y, (byte)g);
+                    gbuffer.set(x, i* stripHeight+y, (byte)g);
                 }
         }
         Rect r = new Rect(0, imageHeight-rem_layer,imageWidth, imageHeight);
-        stripbit = regDec.decodeRegion(r, postOptions);
-        int[] pixdata = new int[rem_layer*imageWidth];
-        stripbit.getPixels(pixdata, 0, imageWidth, 0,0,imageWidth, rem_layer);
+        strip = regDec.decodeRegion(r, postOptions);
+        int[] pixelData = new int[rem_layer*imageWidth];
+        strip.getPixels(pixelData, 0, imageWidth, 0,0,imageWidth, rem_layer);
 
         for(int y=0;y<rem_layer;y++)
             for(int x = 0;x<imageWidth;x++) {
-                int pix = pixdata[y*imageWidth+x];
+                int pix = pixelData[y*imageWidth+x];
                 int g = ((pix & 0xFF) + ((pix >> 8) & 0xFF) + ((pix >> 16) & 0xFF))/3;
                 gbuffer.set(x, imageHeight-rem_layer+y, (byte)g);
             }
 
         long t2 = System.currentTimeMillis();
 
-        publishProgress("1", String.format("image loaded : elapsed: %d.%ds", (t2-t1) / 1000, (t2-t1) % 1000) );
+        publishProgress("1", String.format("Image loaded time: %d.%ds", (t2-t1) / 1000, (t2-t1) % 1000) );
         return gbuffer;
     }
 
