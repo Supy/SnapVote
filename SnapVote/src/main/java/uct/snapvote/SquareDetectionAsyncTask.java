@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import uct.snapvote.filter.GuassianTRF;
+import uct.snapvote.filter.SobelTRF;
 import uct.snapvote.util.DebugTimer;
 
 /**
@@ -51,8 +52,26 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             publishProgress("1", "blurred: " + dbgtimer.toString()); dbgtimer.restart();
 
+            sobelBufferIntoBufferWithThreads(buffer2, buffer1);
+
+            publishProgress("1", "sobel: " + dbgtimer.toString()); dbgtimer.restart();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             // save to sdcard in order to debug
-            Bitmap testimg = buffer2.createBitmap();
+            Bitmap testimg = buffer1.createBitmap();
             publishProgress("1", "bitmap: " + dbgtimer.toString()); dbgtimer.restart();
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             testimg.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
@@ -147,6 +166,31 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         GuassianTRF g2 = new GuassianTRF(buffer1, buffer2, 2, halfy, halfx, buffer1.getHeight()-2, 2);
         GuassianTRF g3 = new GuassianTRF(buffer1, buffer2, halfx, 2, buffer1.getWidth()-2, halfy, 2);
         GuassianTRF g4 = new GuassianTRF(buffer1, buffer2, halfx, halfy, buffer1.getWidth()-2, buffer1.getHeight()-2, 2);
+
+        Thread t1 = new Thread(g1);
+        Thread t2 = new Thread(g2);
+        Thread t3 = new Thread(g3);
+        Thread t4 = new Thread(g4);
+
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+
+        try { t1.join(); } catch (InterruptedException e) {  }
+        try { t2.join(); } catch (InterruptedException e) {  }
+        try { t3.join(); } catch (InterruptedException e) {  }
+        try { t4.join(); } catch (InterruptedException e) {  }
+    }
+
+    private void sobelBufferIntoBufferWithThreads(ImageByteBuffer buffer1, ImageByteBuffer buffer2) {
+        int halfy = buffer1.getHeight()/2;
+        int halfx = buffer1.getWidth()/2;
+
+        SobelTRF g1 = new SobelTRF(buffer1, buffer2, 2, 2, halfx, halfy);
+        SobelTRF g2 = new SobelTRF(buffer1, buffer2, 2, halfy, halfx, buffer1.getHeight()-2);
+        SobelTRF g3 = new SobelTRF(buffer1, buffer2, halfx, 2, buffer1.getWidth()-2, halfy);
+        SobelTRF g4 = new SobelTRF(buffer1, buffer2, halfx, halfy, buffer1.getWidth()-2, buffer1.getHeight()-2);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);
