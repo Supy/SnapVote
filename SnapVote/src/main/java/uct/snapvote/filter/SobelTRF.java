@@ -43,10 +43,12 @@ public class SobelTRF extends ThreadedBaseRegionFilter {
                 if (angle < 90) acat = 45;
                 if (angle < 45) acat = 0;
 
+                // Store gradient direction
                 dirDataOutput.set(x, y, (byte)acat);
 
                 if (Gm > 255) Gm = 255;
 
+                // Store gradient value
                 destination.set(x,y, (byte)Gm);
             }
         }

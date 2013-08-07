@@ -54,6 +54,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             publishProgress("1", "Sobel: " + dbgtimer.toString()); dbgtimer.restart();
             // use the direction info in B3 to identify peaks in B1. put result in B2
+            buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
             peakFilter(buffer1, buffer2, buffer3);
 
             publishProgress("1", "Peaked: " + dbgtimer.toString()); dbgtimer.restart();
