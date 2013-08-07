@@ -7,10 +7,14 @@ import android.graphics.BitmapRegionDecoder;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -37,60 +41,37 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             // 1 - image loading
 
-            ImageByteBuffer grayscale = readAwesomeGrayscale(processActivity.imageUri);
-
+            ImageByteBuffer buffer1 = readAwesomeGrayscale(processActivity.imageUri);
+            ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
             // blurring
             DebugTimer dbgtimer = new DebugTimer();
 
-            ImageByteBuffer blurred = new ImageByteBuffer(grayscale.getWidth(), grayscale.getHeight());
+            blurBufferIntoBufferWithThreads(buffer1, buffer2);
 
-            publishProgress("1", "B s1 " + dbgtimer.toString());
-            dbgtimer.restart();
+            publishProgress("1", "blurred: " + dbgtimer.toString()); dbgtimer.restart();
 
-            GuassianTRF g1 = new GuassianTRF(grayscale, blurred, 2);
-
-
-            publishProgress("1", "B s2 " + dbgtimer.toString());
-            dbgtimer.restart();
-
-            Thread t1 = new Thread(g1);
-            t1.start();
-            try {
-                t1.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            publishProgress("1", "B s3 " + dbgtimer.toString());
-            dbgtimer.restart();
-
-
+            // save to sdcard in order to debug
+            Bitmap testimg = buffer2.createBitmap();
+            publishProgress("1", "bitmap: " + dbgtimer.toString()); dbgtimer.restart();
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            testimg.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
+            File f = new File(Environment.getExternalStorageDirectory() + File.separator + "test.jpg");
+            f.createNewFile();
+            FileOutputStream fo = new FileOutputStream(f);
+            fo.write(bytes.toByteArray());
+            fo.close();
+            publishProgress("1", "saved: " + dbgtimer.toString()); dbgtimer.restart();
 
         } catch (IOException e) {
 
         }
 
-//        try {
-//            for(int i =0;i<100;i++) {
-//                publishProgress(1);
-//                Thread.sleep(20);
-//            }
-//        } catch (Exception e) {
-//            Log.e("E", e.toString());
-//        }
 
 
         return 0;
     }
 
-    @Override
-    protected void onProgressUpdate(String... values) {
-        processActivity.pbMainProgress.incrementProgressBy(Integer.parseInt(values[0]));  // hax ;)
-        if (values.length > 1) {
-            processActivity.tvConsole.append(values[1] + "\n");
-        }
-    }
 
     private ImageByteBuffer readAwesomeGrayscale(String datastr) throws IOException {
         // first get content uri of image on phone
@@ -156,5 +137,39 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
         publishProgress("1", String.format("image loaded : elapsed: %d.%ds", (t2-t1) / 1000, (t2-t1) % 1000) );
         return gbuffer;
+    }
+
+    private void blurBufferIntoBufferWithThreads(ImageByteBuffer buffer1, ImageByteBuffer buffer2) {
+        int halfy = buffer1.getHeight()/2;
+        int halfx = buffer1.getWidth()/2;
+
+        GuassianTRF g1 = new GuassianTRF(buffer1, buffer2, 2, 2, halfx, halfy, 2);
+        GuassianTRF g2 = new GuassianTRF(buffer1, buffer2, 2, halfy, halfx, buffer1.getHeight()-2, 2);
+        GuassianTRF g3 = new GuassianTRF(buffer1, buffer2, halfx, 2, buffer1.getWidth()-2, halfy, 2);
+        GuassianTRF g4 = new GuassianTRF(buffer1, buffer2, halfx, halfy, buffer1.getWidth()-2, buffer1.getHeight()-2, 2);
+
+        Thread t1 = new Thread(g1);
+        Thread t2 = new Thread(g2);
+        Thread t3 = new Thread(g3);
+        Thread t4 = new Thread(g4);
+
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+
+        try { t1.join(); } catch (InterruptedException e) {  }
+        try { t2.join(); } catch (InterruptedException e) {  }
+        try { t3.join(); } catch (InterruptedException e) {  }
+        try { t4.join(); } catch (InterruptedException e) {  }
+    }
+
+
+    @Override
+    protected void onProgressUpdate(String... values) {
+        processActivity.pbMainProgress.incrementProgressBy(Integer.parseInt(values[0]));  // hax ;)
+        if (values.length > 1) {
+            processActivity.tvConsole.append(values[1] + "\n");
+        }
     }
 }

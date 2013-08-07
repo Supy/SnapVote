@@ -2,8 +2,6 @@ package uct.snapvote.filter;
 
 import android.util.Log;
 
-import java.security.CodeSigner;
-
 import uct.snapvote.ImageByteBuffer;
 
 /**
@@ -20,8 +18,8 @@ public class GuassianTRF extends ThreadedBaseRegionFilter {
         setBlurRadius(blurradius);
     }
 
-    public GuassianTRF(ImageByteBuffer source, ImageByteBuffer destination, int srcx, int srcy, int srcwidth, int srcheight, int blurradius) {
-        super(source, destination, srcx, srcy, srcwidth, srcheight);
+    public GuassianTRF(ImageByteBuffer source, ImageByteBuffer destination, int x1, int y1, int x2, int y2, int blurradius) {
+        super(source, destination, x1, y1, x2, y2);
         setBlurRadius(blurradius);
     }
 
@@ -53,24 +51,19 @@ public class GuassianTRF extends ThreadedBaseRegionFilter {
 
     @Override
     public void run() {
-
-
-        for(int y=srcy;y<srcheight;y++) {
-            for(int x=srcx;x<srcwidth;x++) {
+        Log.d("uct.snapvote", "start " + this.x1 + " " + this.y1);
+        for(int y= y1;y< y2;y++) {
+            for(int x= x1;x< x2;x++) {
 
                 double total = 0;
 
                 for(int dy = -radius; dy < radius; dy++) {
 
                     int ry = y+dy;
-                    if (ry < 0) ry = -ry;
-                    else if (ry >= source.getHeight()) ry = (source.getHeight() << 1) - ry -1;
 
                     for(int dx = -radius; dx < radius; dx++) {
 
                         int rx = x+dx;
-                        if (rx < 0) rx = -rx;
-                        else if (rx >= source.getWidth()) rx = (source.getWidth() << 1) - rx -1;
 
                         int c = source.get(rx, ry);
                         total += guassian[radius+dy][radius+dx] * (c & 0xFF);
@@ -83,6 +76,8 @@ public class GuassianTRF extends ThreadedBaseRegionFilter {
 
 
         }
+
+        Log.d("uct.snapvote", "finished " + this.x1 + " " + this.y1);
 
     }
 

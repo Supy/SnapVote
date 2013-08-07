@@ -8,29 +8,29 @@ import uct.snapvote.ImageByteBuffer;
 public class BaseRegionFilter {
 
     ImageByteBuffer source, destination;
-    int srcx, srcy, srcheight, srcwidth;
+    int x1, y1, y2, x2;
 
     public BaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination) {
         this.source = source;
         this.destination = destination;
-        this.srcheight = source.getHeight();
-        this.srcwidth = source.getWidth();
-        this.srcx = 0;
-        this.srcy = 0;
+        this.y2 = source.getHeight();
+        this.x2 = source.getWidth();
+        this.x1 = 0;
+        this.y1 = 0;
     }
 
-    public BaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination, int srcx, int srcy, int srcwidth, int srcheight) {
+    public BaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination, int x1, int y1, int x2, int y2) {
         this.source = source;
         this.destination = destination;
-        this.srcheight = srcheight;
-        this.srcwidth = srcwidth;
-        this.srcx = srcx;
-        this.srcy = srcy;
+        this.y2 = y2;
+        this.x2 = x2;
+        this.x1 = x1;
+        this.y1 = y1;
     }
 
     public void process() {
-        for(int y=srcy;y<srcheight;y++)
-            for(int x=srcx;x<srcwidth;x++)
+        for(int y= y1;y< y2;y++)
+            for(int x= x1;x< x2;x++)
                 destination.set(x,y, source.get(x,y));
     }
 }

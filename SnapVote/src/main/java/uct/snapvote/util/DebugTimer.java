@@ -20,7 +20,7 @@ public class DebugTimer {
 
     public void Logd(String name) {
 
-        Log.d("dbgtime", "Timer: " + name + " : " + this.toString() );
+        Log.d("uct.snapvote", "Timer: " + name + " : " + this.toString() );
     }
 
     public String toString() {
