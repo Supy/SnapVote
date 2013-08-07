@@ -12,11 +12,22 @@ public class DebugTimer {
         starttime = System.currentTimeMillis();
     }
 
-    public void printout(String name) {
-        long elapsed = System.currentTimeMillis() - starttime;
-        Log.d("dbgtime", String.format("Timer: %s : %d.%ds", name, elapsed / 1000 , elapsed % 1000));
+
+
+    public void restart() {
         starttime = System.currentTimeMillis();
     }
+
+    public void Logd(String name) {
+
+        Log.d("dbgtime", "Timer: " + name + " : " + this.toString() );
+    }
+
+    public String toString() {
+        long elapsed = System.currentTimeMillis() - starttime;
+        return String.format("%d.%ds", elapsed / 1000 , elapsed % 1000);
+    }
+
 
 
 }

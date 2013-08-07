@@ -14,6 +14,9 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.io.InputStream;
 
+import uct.snapvote.filter.GuassianTRF;
+import uct.snapvote.util.DebugTimer;
+
 /**
  * Created by Ben on 8/4/13.
  */
@@ -37,6 +40,30 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             ImageByteBuffer grayscale = readAwesomeGrayscale(processActivity.imageUri);
 
 
+            // blurring
+            DebugTimer dbgtimer = new DebugTimer();
+
+            ImageByteBuffer blurred = new ImageByteBuffer(grayscale.getWidth(), grayscale.getHeight());
+
+            publishProgress("1", "B s1 " + dbgtimer.toString());
+            dbgtimer.restart();
+
+            GuassianTRF g1 = new GuassianTRF(grayscale, blurred, 2);
+
+
+            publishProgress("1", "B s2 " + dbgtimer.toString());
+            dbgtimer.restart();
+
+            Thread t1 = new Thread(g1);
+            t1.start();
+            try {
+                t1.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            publishProgress("1", "B s3 " + dbgtimer.toString());
+            dbgtimer.restart();
 
 
 
