@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import uct.snapvote.filter.GuassianTRF;
+import uct.snapvote.filter.PeakFindTRF;
 import uct.snapvote.filter.SobelTRF;
 import uct.snapvote.util.DebugTimer;
 
@@ -54,9 +55,10 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             publishProgress("1", "sobel: " + dbgtimer.toString()); dbgtimer.restart();
 
-            
+            // use the direction info in B3 to identify peaks in B1. put result in B2
+            peakFilter(buffer1, buffer2, buffer3);
 
-
+            publishProgress("1", "peaked: " + dbgtimer.toString()); dbgtimer.restart();
 
 
 
@@ -69,7 +71,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
 
             // save to sdcard in order to debug
-            Bitmap testimg = buffer1.createBitmap();
+            Bitmap testimg = buffer2.createBitmap();
             publishProgress("1", "bitmap: " + dbgtimer.toString()); dbgtimer.restart();
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             testimg.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
@@ -193,6 +195,31 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         SobelTRF g2 = new SobelTRF(source, destination, 2, halfy, halfx, source.getHeight()-2, dirDataOutput);
         SobelTRF g3 = new SobelTRF(source, destination, halfx, 2, source.getWidth()-2, halfy, dirDataOutput);
         SobelTRF g4 = new SobelTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2, dirDataOutput);
+
+        Thread t1 = new Thread(g1);
+        Thread t2 = new Thread(g2);
+        Thread t3 = new Thread(g3);
+        Thread t4 = new Thread(g4);
+
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+
+        try { t1.join(); } catch (InterruptedException e) {  }
+        try { t2.join(); } catch (InterruptedException e) {  }
+        try { t3.join(); } catch (InterruptedException e) {  }
+        try { t4.join(); } catch (InterruptedException e) {  }
+    }
+
+    private void peakFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput) {
+        int halfy = source.getHeight()/2;
+        int halfx = source.getWidth()/2;
+
+        PeakFindTRF g1 = new PeakFindTRF(source, destination, 2, 2, halfx, halfy, dirDataInput);
+        PeakFindTRF g2 = new PeakFindTRF(source, destination, 2, halfy, halfx, source.getHeight()-2, dirDataInput);
+        PeakFindTRF g3 = new PeakFindTRF(source, destination, halfx, 2, source.getWidth()-2, halfy, dirDataInput);
+        PeakFindTRF g4 = new PeakFindTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2, dirDataInput);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);
