@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import uct.snapvote.filter.GaussianTRF;
+import uct.snapvote.filter.SobelTRF;
 import uct.snapvote.util.DebugTimer;
 
 /**
@@ -40,13 +41,16 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             ImageByteBuffer buffer1 = readGrayscale(processActivity.imageUri);
             ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
+            ImageByteBuffer buffer3 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
             // blurring
             DebugTimer dbgtimer = new DebugTimer();
 
-            blurBufferIntoBufferWithThreads(buffer1, buffer2, 2);
-
+            blur(buffer1, buffer2, 2);
             publishProgress("1", "Blur: " + dbgtimer.toString()); dbgtimer.restart();
+
+            sobelFilter(buffer2, buffer1, buffer3);
+            publishProgress("1", "Sobel: " + dbgtimer.toString()); dbgtimer.restart();
 
             // save to sdcard in order to debug
             Bitmap testimg = buffer2.createBitmap();
@@ -136,7 +140,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         return gbuffer;
     }
 
-    private void blurBufferIntoBufferWithThreads(ImageByteBuffer buffer1, ImageByteBuffer buffer2, int blurRadius) {
+    private void blur(ImageByteBuffer buffer1, ImageByteBuffer buffer2, int blurRadius) {
         int halfy = buffer1.getHeight()/2;
         int halfx = buffer1.getWidth()/2;
 
@@ -144,6 +148,31 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         GaussianTRF g2 = new GaussianTRF(buffer1, buffer2, blurRadius, halfy, halfx, buffer1.getHeight()-blurRadius, blurRadius);
         GaussianTRF g3 = new GaussianTRF(buffer1, buffer2, halfx, blurRadius, buffer1.getWidth()-blurRadius, halfy, blurRadius);
         GaussianTRF g4 = new GaussianTRF(buffer1, buffer2, halfx, halfy, buffer1.getWidth()-blurRadius, buffer1.getHeight()-blurRadius, blurRadius);
+
+        Thread t1 = new Thread(g1);
+        Thread t2 = new Thread(g2);
+        Thread t3 = new Thread(g3);
+        Thread t4 = new Thread(g4);
+
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+
+        try { t1.join(); } catch (InterruptedException e) {  }
+        try { t2.join(); } catch (InterruptedException e) {  }
+        try { t3.join(); } catch (InterruptedException e) {  }
+        try { t4.join(); } catch (InterruptedException e) {  }
+    }
+
+    private void sobelFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataOutput) {
+        int halfy = source.getHeight()/2;
+        int halfx = source.getWidth()/2;
+
+        SobelTRF g1 = new SobelTRF(source, destination, 2, 2, halfx, halfy, dirDataOutput);
+        SobelTRF g2 = new SobelTRF(source, destination, 2, halfy, halfx, source.getHeight()-2, dirDataOutput);
+        SobelTRF g3 = new SobelTRF(source, destination, halfx, 2, source.getWidth()-2, halfy, dirDataOutput);
+        SobelTRF g4 = new SobelTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2, dirDataOutput);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);
