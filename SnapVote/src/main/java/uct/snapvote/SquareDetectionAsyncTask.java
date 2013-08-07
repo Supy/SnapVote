@@ -41,19 +41,20 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             ImageByteBuffer buffer1 = readGrayscale(processActivity.imageUri);
             ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
+            ImageByteBuffer buffer3 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
             // blurring
             DebugTimer dbgtimer = new DebugTimer();
 
-            blurBufferIntoBufferWithThreads(buffer1, buffer2);
+            blur(buffer1, buffer2, 2);
 
             publishProgress("1", "blurred: " + dbgtimer.toString()); dbgtimer.restart();
 
-            sobelBufferIntoBufferWithThreads(buffer2, buffer1);
+            sobelFilter(buffer2, buffer1, buffer3);
 
             publishProgress("1", "sobel: " + dbgtimer.toString()); dbgtimer.restart();
 
-
+            
 
 
 
@@ -159,14 +160,14 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         return gbuffer;
     }
 
-    private void blurBufferIntoBufferWithThreads(ImageByteBuffer source, ImageByteBuffer destination) {
+    private void blur(ImageByteBuffer source, ImageByteBuffer destination, int radius) {
         int halfy = source.getHeight()/2;
         int halfx = source.getWidth()/2;
 
-        GuassianTRF g1 = new GuassianTRF(source, destination, 2, 2, halfx, halfy, 2);
-        GuassianTRF g2 = new GuassianTRF(source, destination, 2, halfy, halfx, source.getHeight()-2, 2);
-        GuassianTRF g3 = new GuassianTRF(source, destination, halfx, 2, source.getWidth()-2, halfy, 2);
-        GuassianTRF g4 = new GuassianTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2, 2);
+        GuassianTRF g1 = new GuassianTRF(source, destination, 2, 2, halfx, halfy, radius);
+        GuassianTRF g2 = new GuassianTRF(source, destination, 2, halfy, halfx, source.getHeight()-2, radius);
+        GuassianTRF g3 = new GuassianTRF(source, destination, halfx, 2, source.getWidth()-2, halfy, radius);
+        GuassianTRF g4 = new GuassianTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2, radius);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);
@@ -184,14 +185,14 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         try { t4.join(); } catch (InterruptedException e) {  }
     }
 
-    private void sobelBufferIntoBufferWithThreads(ImageByteBuffer source, ImageByteBuffer destination) {
+    private void sobelFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataOutput) {
         int halfy = source.getHeight()/2;
         int halfx = source.getWidth()/2;
 
-        SobelTRF g1 = new SobelTRF(source, destination, 2, 2, halfx, halfy);
-        SobelTRF g2 = new SobelTRF(source, destination, 2, halfy, halfx, source.getHeight()-2);
-        SobelTRF g3 = new SobelTRF(source, destination, halfx, 2, source.getWidth()-2, halfy);
-        SobelTRF g4 = new SobelTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2);
+        SobelTRF g1 = new SobelTRF(source, destination, 2, 2, halfx, halfy, dirDataOutput);
+        SobelTRF g2 = new SobelTRF(source, destination, 2, halfy, halfx, source.getHeight()-2, dirDataOutput);
+        SobelTRF g3 = new SobelTRF(source, destination, halfx, 2, source.getWidth()-2, halfy, dirDataOutput);
+        SobelTRF g4 = new SobelTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2, dirDataOutput);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);
