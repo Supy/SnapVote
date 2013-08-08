@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -66,12 +67,14 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             testimg.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
-            File f = new File(Environment.getExternalStorageDirectory() + File.separator + "test.jpg");
+            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File f = new File(path, "test.jpg");
             f.createNewFile();
             FileOutputStream fo = new FileOutputStream(f);
             fo.write(bytes.toByteArray());
             fo.close();
             publishProgress("1", "Save: " + dbgtimer.toString()); dbgtimer.restart();
+            Log.d("uct.snapvote", "Saved image to "+f.getAbsolutePath());
 
         } catch (IOException e) {
 
@@ -204,10 +207,10 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         int halfy = source.getHeight()/2;
         int halfx = source.getWidth()/2;
 
-        PeakFindTRF g1 = new PeakFindTRF(source, destination, 2, 2, halfx, halfy, dirDataInput);
-        PeakFindTRF g2 = new PeakFindTRF(source, destination, 2, halfy, halfx, source.getHeight()-2, dirDataInput);
-        PeakFindTRF g3 = new PeakFindTRF(source, destination, halfx, 2, source.getWidth()-2, halfy, dirDataInput);
-        PeakFindTRF g4 = new PeakFindTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2, dirDataInput);
+        PeakFindTRF g1 = new PeakFindTRF(source, destination, 1, 1, halfx, halfy, dirDataInput);
+        PeakFindTRF g2 = new PeakFindTRF(source, destination, 1, halfy, halfx, source.getHeight()-1, dirDataInput);
+        PeakFindTRF g3 = new PeakFindTRF(source, destination, halfx, 1, source.getWidth()-1, halfy, dirDataInput);
+        PeakFindTRF g4 = new PeakFindTRF(source, destination, halfx, halfy, source.getWidth()-1, source.getHeight()-1, dirDataInput);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);
