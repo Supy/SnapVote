@@ -10,28 +10,31 @@ import uct.snapvote.ImageByteBuffer;
 public class PeakFindTRF extends ThreadedBaseRegionFilter {
 
     private ImageByteBuffer dirDataInput;
+    private int peakLow, peakHigh;
+    final int peakMax = 255;
+    final byte peakMaxByte = (byte) peakMax;
+    final byte zero = (byte) 0;
 
-    public PeakFindTRF(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput) {
+    public PeakFindTRF(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
         super(source, destination);
         this.dirDataInput = dirDataInput;
+        this.peakLow = peakLow;
+        this.peakHigh = peakHigh;
     }
 
-    public PeakFindTRF(ImageByteBuffer source, ImageByteBuffer destination, int x1, int y1, int x2, int y2, ImageByteBuffer dirDataInput) {
+    public PeakFindTRF(ImageByteBuffer source, ImageByteBuffer destination, int x1, int y1, int x2, int y2, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
         super(source, destination, x1, y1, x2, y2);
         this.dirDataInput = dirDataInput;
+        this.peakLow = peakLow;
+        this.peakHigh = peakHigh;
     }
 
     public void run() {
-        // The thresholds for the edge tracing.
-        // TODO: needs to be a parameter
-        final int HIGH = 150;
-        final int LOW = 70;
-        final int peakMax = 255;
-        final byte peakMaxByte = (byte) peakMax;
-        final byte zero = (byte) 0;
+        Log.d("uct.snapvote", "Canny edge detection with low peak = "+peakLow+" and high peak = "+peakHigh);
 
         int peaks = 0;
         int potentialPeaks = 0;
+
         for(int y= y1;y< y2;y++) {
             for(int x= x1;x< x2;x++) {
 
@@ -65,11 +68,11 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
                 byte finalPeak = 0;
 
                 if(gradient > 0 && gradient > (source.get(x1, y1) & 0xFF) && gradient > (source.get(x2, y2) & 0xFF)) {
-                    if(gradient > HIGH){        // High threshold, indicating definite peak
+                    if(gradient > peakHigh){        // High threshold, indicating definite peak
                         finalPeak = peakMaxByte;
                         peak = peakMaxByte;
                         peaks++;
-                    }else if(gradient >= LOW){  // Potential peak
+                    }else if(gradient >= peakLow){  // Potential peak
                         peak = (byte) gradient;
                         potentialPeaks++;
                     }
@@ -81,7 +84,7 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
         }
 
         Log.d("uct.snapvote", "Definite peaks: "+peaks+" Potential peaks: "+potentialPeaks);
-        //TODO: Need to fix the infinite loop here. Commented out so that it doesnt break build.
+
         boolean more;
         int iterations = 0;
         int convertedPeaks = 0;
@@ -132,7 +135,7 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
                             if(q == 0 && p == 0)
                                 continue;
 
-                            destination.setWhite(x+p, y+q);
+                            destination.set(x+p, y+q, peakMaxByte);
                         }
                 }
             }

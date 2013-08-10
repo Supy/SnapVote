@@ -39,6 +39,10 @@
             android:name="uct.snapvote.ProcessActivity"
             android:label="@string/title_activity_process" >
         </activity>
+        <activity
+            android:name="uct.snapvote.SettingsActivity"
+            android:label="@string/title_activity_settings" >
+        </activity>
     </application>
 
 </manifest>

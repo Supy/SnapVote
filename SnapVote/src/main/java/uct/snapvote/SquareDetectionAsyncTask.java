@@ -1,6 +1,7 @@
 package uct.snapvote;
 
 import android.content.ContentResolver;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
@@ -8,6 +9,7 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -27,6 +29,7 @@ import uct.snapvote.util.DebugTimer;
 public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer> {
 
     ProcessActivity processActivity;
+    int gaussianBlurRadius, cannyPeakLow, cannyPeakHigh;
 
     public SquareDetectionAsyncTask(ProcessActivity processActivity) {
         this.processActivity = processActivity;
@@ -35,51 +38,59 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
     @Override
     protected Integer doInBackground(String... strings) {
 
-        // hey hey, here we are, the real meat of the problem
+        loadPreferences();
 
         try {
-
-            // 1 - image loading
 
             ImageByteBuffer buffer1 = readGrayscale(processActivity.imageUri);
             ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
             ImageByteBuffer buffer3 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
-            // blurring
-            DebugTimer dbgtimer = new DebugTimer();
 
-            blur(buffer1, buffer2, 2);
-            publishProgress("1", "Blur: " + dbgtimer.toString()); dbgtimer.restart();
+            DebugTimer debugTimer = new DebugTimer();
+            // Gaussian blur
+            blur(buffer1, buffer2, gaussianBlurRadius);
+            publishProgress("1", "Blur: " + debugTimer.toString()); debugTimer.restart();
 
+            // Sobel filter
             sobelFilter(buffer2, buffer1, buffer3);
+            publishProgress("1", "Sobel: " + debugTimer.toString()); debugTimer.restart();
 
-            publishProgress("1", "Sobel: " + dbgtimer.toString()); dbgtimer.restart();
-            // use the direction info in B3 to identify peaks in B1. put result in B2
+            // Canny edge detection
             buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
-            peakFilter(buffer1, buffer2, buffer3);
-
-            publishProgress("1", "Peaked: " + dbgtimer.toString()); dbgtimer.restart();
+            peakFilter(buffer1, buffer2, buffer3, cannyPeakLow, cannyPeakHigh);
+            publishProgress("1", "Peaked: " + debugTimer.toString()); debugTimer.restart();
 
             // save to sdcard in order to debug
-            Bitmap testimg = buffer2.createBitmap();
-            publishProgress("1", "Bitmap: " + dbgtimer.toString()); dbgtimer.restart();
+            Bitmap testImage = buffer2.createBitmap();
+            publishProgress("1", "Bitmap: " + debugTimer.toString()); debugTimer.restart();
 
 
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            testimg.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
+            testImage.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
             File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
             File f = new File(path, "test.jpg");
             f.createNewFile();
             FileOutputStream fo = new FileOutputStream(f);
             fo.write(bytes.toByteArray());
             fo.close();
-            publishProgress("1", "Save: " + dbgtimer.toString()); dbgtimer.restart();
+            publishProgress("1", "Save: " + debugTimer.toString()); debugTimer.restart();
             Log.d("uct.snapvote", "Saved image to "+f.getAbsolutePath());
 
         } catch (IOException e) {
 
         }
         return 0;
+    }
+
+    private void loadPreferences(){
+        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(processActivity);
+
+        gaussianBlurRadius = Integer.parseInt(mySharedPreferences.getString("gaussian_blur_radius", "2"));
+        cannyPeakLow = Integer.parseInt(mySharedPreferences.getString("canny_peak_low", "70"));
+        cannyPeakHigh = Integer.parseInt(mySharedPreferences.getString("canny_peak_high", "150"));
+
+        Log.d("uct.snapvote", "Preferences loaded.");
     }
 
     private ImageByteBuffer readGrayscale(String datastr) throws IOException {
@@ -203,14 +214,14 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         publishProgress("5");
     }
 
-    private void peakFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput) {
+    private void peakFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
         int halfy = source.getHeight()/2;
         int halfx = source.getWidth()/2;
 
-        PeakFindTRF g1 = new PeakFindTRF(source, destination, 1, 1, halfx, halfy, dirDataInput);
-        PeakFindTRF g2 = new PeakFindTRF(source, destination, 1, halfy, halfx, source.getHeight()-1, dirDataInput);
-        PeakFindTRF g3 = new PeakFindTRF(source, destination, halfx, 1, source.getWidth()-1, halfy, dirDataInput);
-        PeakFindTRF g4 = new PeakFindTRF(source, destination, halfx, halfy, source.getWidth()-1, source.getHeight()-1, dirDataInput);
+        PeakFindTRF g1 = new PeakFindTRF(source, destination, 1, 1, halfx, halfy, dirDataInput, peakLow, peakHigh);
+        PeakFindTRF g2 = new PeakFindTRF(source, destination, 1, halfy, halfx, source.getHeight()-1, dirDataInput, peakLow, peakHigh);
+        PeakFindTRF g3 = new PeakFindTRF(source, destination, halfx, 1, source.getWidth()-1, halfy, dirDataInput, peakLow, peakHigh);
+        PeakFindTRF g4 = new PeakFindTRF(source, destination, halfx, halfy, source.getWidth()-1, source.getHeight()-1, dirDataInput, peakLow, peakHigh);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);

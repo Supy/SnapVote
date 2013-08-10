@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+            android:title="Gaussian blur parameters">
+
+        <EditTextPreference
+                android:key="gaussian_blur_radius"
+                android:title="Gaussian blur radius"
+                android:summary="Set blur filter size in pixels."
+                android:defaultValue="2"
+                android:inputType="number"
+                android:dialogTitle="Gaussian blur radius" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+            android:title="Canny edge detector parameters">
+
+        <EditTextPreference
+                android:key="canny_peak_low"
+                android:title="Low peak threshold"
+                android:summary="Low value for edges to be possible peaks."
+                android:defaultValue="70"
+                android:inputType="number"
+                android:dialogTitle="Low peak threshold" />
+
+        <EditTextPreference
+                android:key="canny_peak_high"
+                android:title="High peak threshold"
+                android:summary="High value for edges to be definite peaks."
+                android:defaultValue="150"
+                android:inputType="number"
+                android:dialogTitle="High peak threshold" />
+    </PreferenceCategory>
+</PreferenceScreen>

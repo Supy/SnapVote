@@ -6,5 +6,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_preprocess">Snap Vote</string>
     <string name="title_activity_process">ProcessActivity</string>
+    <string name="title_activity_settings">Settings</string>
 
 </resources>
