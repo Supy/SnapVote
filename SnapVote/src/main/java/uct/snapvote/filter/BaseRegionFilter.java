@@ -5,7 +5,7 @@ import uct.snapvote.ImageByteBuffer;
 /**
  * Created by Ben on 8/3/13.
  */
-public class BaseRegionFilter {
+public abstract class BaseRegionFilter {
 
     ImageByteBuffer source, destination;
     int x1, y1, y2, x2;
@@ -28,9 +28,5 @@ public class BaseRegionFilter {
         this.y1 = y1;
     }
 
-    public void process() {
-        for(int y= y1;y< y2;y++)
-            for(int x= x1;x< x2;x++)
-                destination.set(x,y, source.get(x,y));
-    }
+    public abstract void run();
 }

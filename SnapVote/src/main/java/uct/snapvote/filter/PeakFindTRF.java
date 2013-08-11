@@ -13,15 +13,15 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
     private int peakLow, peakHigh;
     private final byte bytePeakMax = (byte) 255;
 
-    public PeakFindTRF(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
-        super(source, destination);
+    public PeakFindTRF(ImageByteBuffer source, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
+        super(source, null);
         this.dirDataInput = dirDataInput;
         this.peakLow = peakLow;
         this.peakHigh = peakHigh;
     }
 
-    public PeakFindTRF(ImageByteBuffer source, ImageByteBuffer destination, int x1, int y1, int x2, int y2, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
-        super(source, destination, x1, y1, x2, y2);
+    public PeakFindTRF(ImageByteBuffer source, int x1, int y1, int x2, int y2, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
+        super(source, null, x1, y1, x2, y2);
         this.dirDataInput = dirDataInput;
         this.peakLow = peakLow;
         this.peakHigh = peakHigh;

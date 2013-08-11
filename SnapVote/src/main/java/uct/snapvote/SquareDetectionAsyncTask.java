@@ -62,7 +62,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             // Canny edge detection
             // In-place editing, don't need another buffer.
-            peakFilter(buffer1, null, buffer3, cannyPeakLow, cannyPeakHigh);
+            peakFilter(buffer1, buffer3, cannyPeakLow, cannyPeakHigh);
             publishProgress("1", "Peaked: " + debugTimer.toString()); debugTimer.restart();
 
             buffer3 = null;
@@ -221,14 +221,14 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         publishProgress("5");
     }
 
-    private void peakFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
+    private void peakFilter(ImageByteBuffer source, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
         int halfy = source.getHeight()/2;
         int halfx = source.getWidth()/2;
 
-        PeakFindTRF g1 = new PeakFindTRF(source, destination, 1, 1, halfx, halfy, dirDataInput, peakLow, peakHigh);
-        PeakFindTRF g2 = new PeakFindTRF(source, destination, 1, halfy, halfx, source.getHeight()-1, dirDataInput, peakLow, peakHigh);
-        PeakFindTRF g3 = new PeakFindTRF(source, destination, halfx, 1, source.getWidth()-1, halfy, dirDataInput, peakLow, peakHigh);
-        PeakFindTRF g4 = new PeakFindTRF(source, destination, halfx, halfy, source.getWidth()-1, source.getHeight()-1, dirDataInput, peakLow, peakHigh);
+        PeakFindTRF g1 = new PeakFindTRF(source, 1, 1, halfx, halfy, dirDataInput, peakLow, peakHigh);
+        PeakFindTRF g2 = new PeakFindTRF(source, 1, halfy, halfx, source.getHeight()-1, dirDataInput, peakLow, peakHigh);
+        PeakFindTRF g3 = new PeakFindTRF(source, halfx, 1, source.getWidth()-1, halfy, dirDataInput, peakLow, peakHigh);
+        PeakFindTRF g4 = new PeakFindTRF(source, halfx, halfy, source.getWidth()-1, source.getHeight()-1, dirDataInput, peakLow, peakHigh);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);
