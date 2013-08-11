@@ -56,13 +56,20 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             sobelFilter(buffer2, buffer1, buffer3);
             publishProgress("1", "Sobel: " + debugTimer.toString()); debugTimer.restart();
 
+            // Ideally free up limited memory ASAP. Debatable if this helps.
+            buffer2 = null;
+            System.gc();
+
             // Canny edge detection
-            buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
-            peakFilter(buffer1, buffer2, buffer3, cannyPeakLow, cannyPeakHigh);
+            // In-place editing, don't need another buffer.
+            peakFilter(buffer1, null, buffer3, cannyPeakLow, cannyPeakHigh);
             publishProgress("1", "Peaked: " + debugTimer.toString()); debugTimer.restart();
 
+            buffer3 = null;
+            System.gc();
+
             // save to sdcard in order to debug
-            Bitmap testImage = buffer2.createBitmap();
+            Bitmap testImage = buffer1.createBitmap();
             publishProgress("1", "Bitmap: " + debugTimer.toString()); debugTimer.restart();
 
 

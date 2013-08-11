@@ -11,9 +11,7 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
 
     private ImageByteBuffer dirDataInput;
     private int peakLow, peakHigh;
-    final int peakMax = 255;
-    final byte peakMaxByte = (byte) peakMax;
-    final byte zero = (byte) 0;
+    private final byte bytePeakMax = (byte) 255;
 
     public PeakFindTRF(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
         super(source, destination);
@@ -31,9 +29,6 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
 
     public void run() {
         Log.d("uct.snapvote", "Canny edge detection with low peak = "+peakLow+" and high peak = "+peakHigh);
-
-        int peaks = 0;
-        int potentialPeaks = 0;
 
         for(int y= y1;y< y2;y++) {
             for(int x= x1;x< x2;x++) {
@@ -64,79 +59,60 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
                 }
 
                 int gradient = source.get(x,y) & 0xFF;
-                byte peak = 0;
-                byte finalPeak = 0;
 
                 if(gradient > 0 && gradient > (source.get(x1, y1) & 0xFF) && gradient > (source.get(x2, y2) & 0xFF)) {
                     if(gradient > peakHigh){        // High threshold, indicating definite peak
-                        finalPeak = peakMaxByte;
-                        peak = peakMaxByte;
-                        peaks++;
-                    }else if(gradient >= peakLow){  // Potential peak
-                        peak = (byte) gradient;
-                        potentialPeaks++;
+                        source.set(x, y, bytePeakMax);
+                    }else if(gradient < peakLow){  // Potential peak
+                        source.set(x,y, (byte) 0);
                     }
+                }else{
+                    source.set(x, y, (byte) 0);
                 }
-
-                destination.set(x,y, finalPeak);
-                source.set(x,y, peak);
             }
         }
 
-        Log.d("uct.snapvote", "Definite peaks: "+peaks+" Potential peaks: "+potentialPeaks);
-
         boolean more;
         int iterations = 0;
-        int convertedPeaks = 0;
         do{
             more = false;
             for(int y = y1; y < y2; y++){
                 for(int x = x1; x < x2; x++){
-                    byte pixel = destination.get(x, y);
+                    byte pixel = source.get(x, y);
                     // If we are a peak, any neighbouring potential peaks are made into peaks.
-                    if(pixel == peakMaxByte){
+                    if(pixel == bytePeakMax){
                         for(int p = -1; p < 1; p++){
                             for(int q = -1; q < 1; q++){
-
-                                // Don't need to adjust the center pixel in the filter.
-                                if(q == 0 && p == 0)
-                                    continue;
-
                                 byte neighbour = source.get(x+p, y+q);
 
-                                if(neighbour != 0 && neighbour != peakMaxByte){
-                                    source.set(x+p, y+q, zero);
-                                    destination.set(x+p, y+q, peakMaxByte);
+                                if(neighbour != 0 && neighbour != bytePeakMax){
+                                    source.set(x+p, y+q, bytePeakMax);
                                     more = true;
-                                    convertedPeaks++;
                                 }
                             }
                         }
                     }
                 }
             }
-        }while(more && iterations < 200);
+        }while(more && iterations < 300);
 
-        if(iterations >= 200)
-            Log.d("uct.snapvote", "Quit after 200 iterations.");
-
-        Log.d("uct.snapvote", "Potential peaks converted: "+convertedPeaks);
+        if(iterations >= 300)
+            Log.d("uct.snapvote", "Quit after 300 iterations.");
 
         // Clear out remaining potential peaks that have lost their potential ;(
         for(int y = y1; y < y2; y++){
             for(int x = x1; x < x2; x++){
 
-                byte pixel = destination.get(x, y);
+                byte pixel = source.get(x, y);
 
                 // Expand any peaks out by 1px to fill small gaps.
-                if(pixel != 0){
+                if(pixel == bytePeakMax){
                     for(int p = -1; p < 1; p++)
                         for(int q = -1; q < 1; q++){
-                            if(q == 0 && p == 0)
-                                continue;
-
-                            destination.set(x+p, y+q, peakMaxByte);
+                            source.set(x+p, y+q, bytePeakMax);
                         }
+                }else if(pixel != 0){
+                    source.set(x, y, (byte) 0);
                 }
             }
         }
