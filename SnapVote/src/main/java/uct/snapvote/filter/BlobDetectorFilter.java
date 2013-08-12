@@ -1,5 +1,7 @@
 package uct.snapvote.filter;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,9 @@ public class BlobDetectorFilter extends BaseRegionFilter {
 
     static class Blob
     {
-        public static final int MIN_MASS = 25;
+        public static final int MIN_MASS = 35;
+        public static final double MAX_RATIO = 1.5;
+        public static final double MIN_AREA = 0.6;
         public int xMin;
         public int xMax;
         public int yMin;
@@ -68,14 +72,14 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                     // check top and left pixel labels
                     char north = pixelLabels[(y-1) * source.getWidth() + x];
                     char west = pixelLabels[y * source.getWidth() + (x-1)];
-//                    char northwest = pixelLabels[(y-1) * source.getWidth() + (x-1)];
-//                    char northeast = pixelLabels[(y-1) * source.getWidth() + (x+1)];
+                    char northwest = pixelLabels[(y-1) * source.getWidth() + (x-1)];
+                    char northeast = pixelLabels[(y-1) * source.getWidth() + (x+1)];
 
                     char min = Character.MAX_VALUE;
                     if(north > 0) min = north;
                     if(west > 0 && west < min) min = west;
-//                    if(northwest > 0 && northwest < min) min = northwest;
-//                    if(northeast > 0 && northeast < min) min = northeast;
+                    if(northwest > 0 && northwest < min) min = northwest;
+                    if(northeast > 0 && northeast < min) min = northeast;
 
                     // if neither were labeled
                     if (min == Character.MAX_VALUE)
@@ -114,6 +118,14 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                         {
                             labelTable[west] = min;
                         }
+                        if (northeast > 0)
+                        {
+                            labelTable[northeast] = min;
+                        }
+                        if (northwest > 0)
+                        {
+                            labelTable[northwest] = min;
+                        }
                     }
                 }
             }
@@ -138,27 +150,33 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 while (l != labelTable[l]) l = labelTable[l];
                 labelTable[i] = (char)l;
             }
-            else if(massTable[i] >= Blob.MIN_MASS)
+            else if (massTable[i] >= Blob.MIN_MASS)
             {
                 int width = xMaxTable[i] - xMinTable[i];
                 int height = yMaxTable[i] - yMinTable[i];
 
-                boolean square = false;
+                double ratio;
 
                 if(width >= height){
-                    square = (width * 1.0 / height <= 1.3);
+                    ratio = width * 1.0 / height;
                 }else{
-                    square = (height * 1.0 / width <= 1.3);
+                    ratio = height * 1.0 / width;
                 }
 
-                if(square){
-                    Blob blob = new Blob(xMinTable[i], xMaxTable[i], yMinTable[i], yMaxTable[i], massTable[i]);
-                    blobs.add(blob);
+                // Only accept blobs within a certain aspect ration (squarish) and with a minimum
+                // amount of area filled.
+                if(ratio <= Blob.MAX_RATIO){
+                    double areaFilled = massTable[i] * 1.0 / (width * height);
+
+                    if(areaFilled >= Blob.MIN_AREA){
+                        Blob blob = new Blob(xMinTable[i], xMaxTable[i], yMinTable[i], yMaxTable[i], massTable[i]);
+                        blobs.add(blob);
+                    }
                 }
             }
         }
 
-        for (int i = maxlabelcount-1; i >0;i--)
+/*        for (int i = maxlabelcount-1; i >0;i--)
         {
             if (labelTable[i] != i)
             {
@@ -166,7 +184,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 while (l != labelTable[l]) l = labelTable[l];
                 labelTable[i] = (char)l;
             }
-        }
+        }*/
 
         char newlabel = 0;
         for(int i=0;i< maxlabelcount-1;i++)
@@ -185,6 +203,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 (byte) 223
         };
 
+        // Give each blob a different colour.
         for(int y=1;y<source.getHeight()-1;y++)
         {
             for(int x=1;x<source.getWidth()-1;x++)
@@ -196,6 +215,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
             }
         }
 
+        // Draw borders around blobs.
         for(Blob b : blobs)
         {
             for(int y=b.yMin;y< b.yMax;y++)
@@ -212,9 +232,5 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 }
             }
         }
-
-
-
-        //Log.d("uct.snapvote", "Labels: "+(int)count+".");
     }
 }
