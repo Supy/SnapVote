@@ -1,10 +1,7 @@
 package uct.snapvote.filter;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import uct.snapvote.ImageByteBuffer;
 
@@ -13,14 +10,13 @@ import uct.snapvote.ImageByteBuffer;
  */
 public class BlobDetectorFilter extends BaseRegionFilter {
 
-    final char MAX_CHAR_VAL = 65535;
-
     public BlobDetectorFilter(ImageByteBuffer source){
         super(source, null);
     }
 
     static class Blob
     {
+        public static final int MIN_MASS = 25;
         public int xMin;
         public int xMax;
         public int yMin;
@@ -66,20 +62,20 @@ public class BlobDetectorFilter extends BaseRegionFilter {
 
                 int px = source.get(x,y) & 0xFF;
 
-                // can this pixel be labeled?
+                // Only label non-edge pixels.
                 if (px == 0)
                 {
                     // check top and left pixel labels
                     char north = pixelLabels[(y-1) * source.getWidth() + x];
                     char west = pixelLabels[y * source.getWidth() + (x-1)];
-                    char northwest = pixelLabels[(y-1) * source.getWidth() + (x-1)];
-                    char northeast = pixelLabels[(y-1) * source.getWidth() + (x+1)];
+//                    char northwest = pixelLabels[(y-1) * source.getWidth() + (x-1)];
+//                    char northeast = pixelLabels[(y-1) * source.getWidth() + (x+1)];
 
                     char min = Character.MAX_VALUE;
                     if(north > 0) min = north;
                     if(west > 0 && west < min) min = west;
-                    if(northwest > 0 && northwest < min) min = northwest;
-                    if(northeast > 0 && northeast < min) min = northeast;
+//                    if(northwest > 0 && northwest < min) min = northwest;
+//                    if(northeast > 0 && northeast < min) min = northeast;
 
                     // if neither were labeled
                     if (min == Character.MAX_VALUE)
@@ -116,7 +112,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                         }
                         if (west > 0)
                         {
-                            labelTable[north] = min;
+                            labelTable[west] = min;
                         }
                     }
                 }
@@ -142,10 +138,23 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 while (l != labelTable[l]) l = labelTable[l];
                 labelTable[i] = (char)l;
             }
-            else
+            else if(massTable[i] >= Blob.MIN_MASS)
             {
-                Blob blob = new Blob(xMinTable[i], xMaxTable[i], yMinTable[i], yMaxTable[i], massTable[i]);
-                blobs.add(blob);
+                int width = xMaxTable[i] - xMinTable[i];
+                int height = yMaxTable[i] - yMinTable[i];
+
+                boolean square = false;
+
+                if(width >= height){
+                    square = (width * 1.0 / height <= 1.3);
+                }else{
+                    square = (height * 1.0 / width <= 1.3);
+                }
+
+                if(square){
+                    Blob blob = new Blob(xMinTable[i], xMaxTable[i], yMinTable[i], yMaxTable[i], massTable[i]);
+                    blobs.add(blob);
+                }
             }
         }
 
