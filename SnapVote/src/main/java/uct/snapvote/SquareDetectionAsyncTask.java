@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import uct.snapvote.filter.BlobDetectorFilter;
 import uct.snapvote.filter.PeakFindTRF;
 import uct.snapvote.filter.GaussianTRF;
 import uct.snapvote.filter.SobelTRF;
@@ -67,6 +68,10 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             buffer3 = null;
             System.gc();
+
+            BlobDetectorFilter bdf = new BlobDetectorFilter(buffer1);
+            bdf.run();
+            publishProgress("1", "Blob label: " + debugTimer.toString()); debugTimer.restart();
 
             // save to sdcard in order to debug
             Bitmap testImage = buffer1.createBitmap();
