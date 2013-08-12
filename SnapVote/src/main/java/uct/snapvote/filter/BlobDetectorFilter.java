@@ -21,6 +21,8 @@ public class BlobDetectorFilter extends BaseRegionFilter {
 
     static class Blob
     {
+        public static final int MIN_MASS = 15;
+
         public int xMin;
         public int xMax;
         public int yMin;
@@ -116,7 +118,15 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                         }
                         if (west > 0)
                         {
-                            labelTable[north] = min;
+                            labelTable[west] = min;
+                        }
+                        if (northeast > 0)
+                        {
+                            labelTable[northeast] = min;
+                        }
+                        if (northwest > 0)
+                        {
+                            labelTable[northwest] = min;
                         }
                     }
                 }
@@ -142,7 +152,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 while (l != labelTable[l]) l = labelTable[l];
                 labelTable[i] = (char)l;
             }
-            else
+            else if (massTable[i] >= Blob.MIN_MASS)
             {
                 Blob blob = new Blob(xMinTable[i], xMaxTable[i], yMinTable[i], yMaxTable[i], massTable[i]);
                 blobs.add(blob);
