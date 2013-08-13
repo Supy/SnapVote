@@ -192,7 +192,6 @@ public class BlobDetectorFilter extends BaseRegionFilter {
             if ( labelTable[i] == i) labelTable[i] = newlabel++;
             else labelTable[i] = labelTable[labelTable[i]];
         }
-
         byte [] colours = new byte[]{
                 (byte) 31,
                 (byte) 63,
@@ -203,15 +202,14 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 (byte) 223
         };
 
-        // Give each blob a different colour.
+        // Give edges a different colour so we can clearly see the bounding squares.
         for(int y=1;y<source.getHeight()-1;y++)
         {
             for(int x=1;x<source.getWidth()-1;x++)
             {
                 char l = pixelLabels[y * source.getWidth() + x];
-                char rootlabel = labelTable[l];
-
-                source.set(x,y, colours[rootlabel % 7]);
+                if(l == 0)
+                    source.set(x,y, (byte) 127);
             }
         }
 

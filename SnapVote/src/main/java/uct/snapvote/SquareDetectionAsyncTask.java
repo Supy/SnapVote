@@ -230,10 +230,12 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         int halfy = source.getHeight()/2;
         int halfx = source.getWidth()/2;
 
-        PeakFindTRF g1 = new PeakFindTRF(source, 1, 1, halfx, halfy, dirDataInput, peakLow, peakHigh);
-        PeakFindTRF g2 = new PeakFindTRF(source, 1, halfy, halfx, source.getHeight()-1, dirDataInput, peakLow, peakHigh);
-        PeakFindTRF g3 = new PeakFindTRF(source, halfx, 1, source.getWidth()-1, halfy, dirDataInput, peakLow, peakHigh);
-        PeakFindTRF g4 = new PeakFindTRF(source, halfx, halfy, source.getWidth()-1, source.getHeight()-1, dirDataInput, peakLow, peakHigh);
+        boolean[][] peakList = new boolean[source.getHeight()][source.getWidth()];
+
+        PeakFindTRF g1 = new PeakFindTRF(source, 1, 1, halfx, halfy, dirDataInput, peakLow, peakHigh, peakList);
+        PeakFindTRF g2 = new PeakFindTRF(source, 1, halfy, halfx, source.getHeight()-1, dirDataInput, peakLow, peakHigh, peakList);
+        PeakFindTRF g3 = new PeakFindTRF(source, halfx, 1, source.getWidth()-1, halfy, dirDataInput, peakLow, peakHigh, peakList);
+        PeakFindTRF g4 = new PeakFindTRF(source, halfx, halfy, source.getWidth()-1, source.getHeight()-1, dirDataInput, peakLow, peakHigh, peakList);
 
         Thread t1 = new Thread(g1);
         Thread t2 = new Thread(g2);
@@ -249,6 +251,57 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         try { t2.join(); } catch (InterruptedException e) {  }
         try { t3.join(); } catch (InterruptedException e) {  }
         try { t4.join(); } catch (InterruptedException e) {  }
+
+        Log.d("uct.snapvote", "Identified first peaks.");
+
+        boolean more;
+        do{
+            more = false;
+
+            for(int y = 1; y < source.getHeight(); y++){
+                for(int x = 1; x < source.getWidth(); x++){
+                    boolean peak = peakList[y][x];
+
+                    if(peak){
+                        peakList[y][x] = false;
+
+                        for(int p = -1; p < 1; p++){
+                            for(int q = -1; q < 1; q++){
+
+                                if(q == 0 && p == 0)
+                                    continue;
+
+                                byte neighbour = source.get(x+p, y+q);
+
+                                if(neighbour != 0 && neighbour != (byte) 255){
+                                    source.set(x+p, y+q, (byte) 255);
+                                    peakList[y+p][x+q] = true;
+                                    more = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }while(more);
+
+        // Clear out remaining potential peaks that have lost their potential ;(
+        for(int y = 1; y < source.getHeight()-1; y++){
+            for(int x = 1; x < source.getWidth()-1; x++){
+
+                byte pixel = source.get(x, y);
+
+                // Expand any peaks out by 1px to fill small gaps.
+                if(pixel == (byte) 255){
+                    for(int p = -1; p < 1; p++)
+                        for(int q = -1; q < 1; q++){
+                            source.set(x+p, y+q, (byte) 255);
+                        }
+                }else if(pixel != 0){
+                    source.set(x, y, (byte) 0);
+                }
+            }
+        }
     }
 
 
