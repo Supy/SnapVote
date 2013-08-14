@@ -47,7 +47,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
             ImageByteBuffer buffer3 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
-
+            DebugTimer totalTimer = new DebugTimer();
             DebugTimer debugTimer = new DebugTimer();
             // Gaussian blur
             blur(buffer1, buffer2, gaussianBlurRadius);
@@ -72,11 +72,11 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             BlobDetectorFilter bdf = new BlobDetectorFilter(buffer1);
             bdf.run();
             publishProgress("1", "Blob label: " + debugTimer.toString()); debugTimer.restart();
+            publishProgress("1", "Total Load & Process Time: " + totalTimer.toString());
 
             // save to sdcard in order to debug
             Bitmap testImage = buffer1.createBitmap();
             publishProgress("1", "Bitmap: " + debugTimer.toString()); debugTimer.restart();
-
 
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             testImage.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
