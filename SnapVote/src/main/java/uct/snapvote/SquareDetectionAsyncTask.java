@@ -52,6 +52,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             DebugTimer totalTimer = new DebugTimer();
             DebugTimer debugTimer = new DebugTimer();
+
             // Gaussian blur
             blur(buffer1, buffer2, gaussianBlurRadius);
             publishProgress("1", "Blur: " + debugTimer.toString()); debugTimer.restart();
@@ -60,25 +61,22 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             sobelFilter(buffer2, buffer1, buffer3);
             publishProgress("1", "Sobel: " + debugTimer.toString()); debugTimer.restart();
 
-            // Ideally free up limited memory ASAP. Debatable if this helps.
-            buffer2 = null;
-            System.gc();
-
             // Canny edge detection
             // In-place editing, don't need another buffer.
-            peakFilter(buffer1, buffer3, cannyPeakLow, cannyPeakHigh);
+            peakFilter(buffer1, buffer2, buffer3, cannyPeakLow, cannyPeakHigh);
             publishProgress("1", "Peaked: " + debugTimer.toString()); debugTimer.restart();
 
+            buffer1 = null;
             buffer3 = null;
             System.gc();
 
-            BlobDetectorFilter bdf = new BlobDetectorFilter(buffer1);
+            BlobDetectorFilter bdf = new BlobDetectorFilter(buffer2);
             bdf.run();
             publishProgress("1", "Blob label: " + debugTimer.toString()); debugTimer.restart();
             publishProgress("1", "Total Load & Process Time: " + totalTimer.toString());
 
             // save to sdcard in order to debug
-            Bitmap testImage = buffer1.createBitmap();
+            Bitmap testImage = buffer2.createBitmap();
             publishProgress("1", "Bitmap: " + debugTimer.toString()); debugTimer.restart();
 
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -242,7 +240,10 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         runTRFs(trfs);
     }
 
-    private void peakFilter(ImageByteBuffer source, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
+    private void peakFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
+
+
+
         int numthreads = 4;
 
         Rectangle[] regions = splitRegion(source.getWidth(), source.getHeight(), numthreads, 1);
@@ -256,6 +257,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         }
 
         runTRFs(trfs);
+
 
         Log.d("uct.snapvote", "Identified first peaks.");
 
@@ -294,16 +296,15 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         for(int y = 1; y < source.getHeight()-1; y++){
             for(int x = 1; x < source.getWidth()-1; x++){
 
-                byte pixel = source.get(x, y);
+                int pixel = source.get(x, y) & 0xFF;
 
                 // Expand any peaks out by 1px to fill small gaps.
-                if(pixel == (byte) 255){
-                    for(int p = -1; p < 1; p++)
-                        for(int q = -1; q < 1; q++){
-                            source.set(x+p, y+q, (byte) 255);
-                        }
+                if(pixel == 255){
+                    destination.set(x-1, y-1, (byte) 255); destination.set(x, y-1, (byte) 255); destination.set(x+1, y-1, (byte) 255);
+                    destination.set(x-1, y, (byte) 255);  destination.set(x, y, (byte) 255); destination.set(x+1, y, (byte) 255);
+                    destination.set(x-1, y+1, (byte) 255); destination.set(x, y+1, (byte) 255); destination.set(x+1, y+1, (byte) 255);
                 }else if(pixel != 0){
-                    source.set(x, y, (byte) 0);
+                    destination.set(x, y, (byte) 0);
                 }
             }
         }
