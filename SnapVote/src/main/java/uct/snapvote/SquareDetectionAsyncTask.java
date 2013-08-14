@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Guard;
+import java.util.BitSet;
 
 import uct.snapvote.filter.BlobDetectorFilter;
 import uct.snapvote.filter.PeakFindTRF;
@@ -61,16 +62,20 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             sobelFilter(buffer2, buffer1, buffer3);
             publishProgress("1", "Sobel: " + debugTimer.toString()); debugTimer.restart();
 
+            BitSet visitedPixels = new BitSet(buffer1.getHeight() * buffer1.getWidth());
+
+            buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
+
             // Canny edge detection
             // In-place editing, don't need another buffer.
-            peakFilter(buffer1, buffer2, buffer3, cannyPeakLow, cannyPeakHigh);
+            peakFilter(buffer1, buffer2, buffer3, visitedPixels, cannyPeakLow, cannyPeakHigh);
             publishProgress("1", "Peaked: " + debugTimer.toString()); debugTimer.restart();
 
             buffer1 = null;
             buffer3 = null;
             System.gc();
 
-            BlobDetectorFilter bdf = new BlobDetectorFilter(buffer2);
+            BlobDetectorFilter bdf = new BlobDetectorFilter(buffer2, visitedPixels, buffer2.getWidth(), buffer2.getHeight());
             bdf.run();
             publishProgress("1", "Blob label: " + debugTimer.toString()); debugTimer.restart();
             publishProgress("1", "Total Load & Process Time: " + totalTimer.toString());
@@ -240,7 +245,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         runTRFs(trfs);
     }
 
-    private void peakFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
+    private void peakFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput, BitSet visitpixels, int peakLow, int peakHigh) {
 
 
 
@@ -296,15 +301,17 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         for(int y = 1; y < source.getHeight()-1; y++){
             for(int x = 1; x < source.getWidth()-1; x++){
 
-                int pixel = source.get(x, y) & 0xFF;
+                byte pixel = source.get(x, y);
 
                 // Expand any peaks out by 1px to fill small gaps.
-                if(pixel == 255){
-                    destination.set(x-1, y-1, (byte) 255); destination.set(x, y-1, (byte) 255); destination.set(x+1, y-1, (byte) 255);
-                    destination.set(x-1, y, (byte) 255);  destination.set(x, y, (byte) 255); destination.set(x+1, y, (byte) 255);
-                    destination.set(x-1, y+1, (byte) 255); destination.set(x, y+1, (byte) 255); destination.set(x+1, y+1, (byte) 255);
-                }else if(pixel != 0){
-                    destination.set(x, y, (byte) 0);
+                if(pixel == (byte)255){
+                    visitpixels.set((y-1) * source.getWidth() +x -1, (y-1) * source.getWidth() +x +1);
+                    visitpixels.set((y) * source.getWidth() +x -1, (y) * source.getWidth() +x +1);
+                    visitpixels.set((y+1) * source.getWidth() +x -1, (y+1) * source.getWidth() +x +1);
+
+                    destination.set(x-1, y-1, (byte)60); destination.set(x, y-1, (byte)60); destination.set(x+1, y-1, (byte)60);
+                    destination.set(x-1, y, (byte)60); destination.set(x, y, (byte)60); destination.set(x+1, y, (byte)60);
+                    destination.set(x-1, y+1, (byte)60); destination.set(x, y+1, (byte)60); destination.set(x+1, y+1, (byte)60);
                 }
             }
         }
