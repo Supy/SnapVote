@@ -23,6 +23,7 @@ import uct.snapvote.filter.BlobDetectorFilter;
 import uct.snapvote.filter.PeakFindTRF;
 import uct.snapvote.filter.GaussianTRF;
 import uct.snapvote.filter.SobelTRF;
+import uct.snapvote.filter.ThreadedBaseRegionFilter;
 import uct.snapvote.util.DebugTimer;
 
 /**
@@ -36,6 +37,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
     public SquareDetectionAsyncTask(ProcessActivity processActivity) {
         this.processActivity = processActivity;
     }
+
 
     @Override
     protected Integer doInBackground(String... strings) {
@@ -172,92 +174,88 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         return gbuffer;
     }
 
-    private void blur(ImageByteBuffer source, ImageByteBuffer destination, int blurRadius) {
-        int bordersize = blurRadius;
-        int numthreads = 4;
-        int threadwidth = source.getWidth() / numthreads;
+    public class Rectangle
+    {
+        int x1, y1;
+        int x2, y2;
+    }
 
-        // initialise processors
-        GaussianTRF[] trfs = new GaussianTRF[numthreads];
-        for(int i=0;i<numthreads;i++)
+    private Rectangle[] splitRegion(int width, int height, int num, int border) {
+        int subwidth = width / num;
+        Rectangle[] o = new Rectangle[num];
+        for(int i=0;i<num;i++)
         {
-            int fx = i* threadwidth;
-            int tx = fx + threadwidth;
-            if (fx==0) fx+=bordersize;
-            if (tx >= source.getWidth()-1) tx-= bordersize;
-            trfs[i] = new GaussianTRF(source, destination, fx, bordersize, tx, source.getHeight()-bordersize, blurRadius);
-        }
+            o[i] = new Rectangle();
+            o[i].y1 = border;
+            o[i].y2 = height - border;
+            o[i].x1 = i * subwidth;
+            o[i].x2 = o[i].x1 + subwidth;
 
+            if(i==0) o[i].x1 += border;
+            if(i==num-1) o[i].x2 = width - border;
+        }
+        return o;
+    }
+
+    private void runTRFs(ThreadedBaseRegionFilter[] trfs) {
         // initialise and start threads
-        Thread[] threads = new Thread[numthreads];
-        for(int i=0;i<numthreads;i++)
+        Thread[] threads = new Thread[trfs.length];
+        for(int i=0;i<trfs.length;i++)
         {
             threads[i] = new Thread(trfs[i]);
             threads[i].start();
         }
 
         // wait for completion
-        for(int i=0;i<numthreads;i++)
+        for(int i=0;i<trfs.length;i++)
         {
             try { threads[i].join(); } catch (InterruptedException e) {  }
         }
     }
 
+
+    private void blur(ImageByteBuffer source, ImageByteBuffer destination, int blurRadius) {
+        int numthreads = 4;
+
+        Rectangle[] regions = splitRegion(source.getWidth(), source.getHeight(), numthreads, blurRadius);
+
+        GaussianTRF[] trfs = new GaussianTRF[numthreads];
+        for(int i=0;i<numthreads;i++)
+        {
+            trfs[i] = new GaussianTRF(source, destination, regions[i].x1, regions[i].y1, regions[i].x2, regions[i].y2, blurRadius);
+        }
+
+        runTRFs(trfs);
+    }
+
     private void sobelFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataOutput) {
-        int halfy = source.getHeight()/2;
-        int halfx = source.getWidth()/2;
+        int numthreads = 4;
 
-        SobelTRF g1 = new SobelTRF(source, destination, 2, 2, halfx, halfy, dirDataOutput);
-        SobelTRF g2 = new SobelTRF(source, destination, 2, halfy, halfx, source.getHeight()-2, dirDataOutput);
-        SobelTRF g3 = new SobelTRF(source, destination, halfx, 2, source.getWidth()-2, halfy, dirDataOutput);
-        SobelTRF g4 = new SobelTRF(source, destination, halfx, halfy, source.getWidth()-2, source.getHeight()-2, dirDataOutput);
+        Rectangle[] regions = splitRegion(source.getWidth(), source.getHeight(), numthreads, 1);
 
-        Thread t1 = new Thread(g1);
-        Thread t2 = new Thread(g2);
-        Thread t3 = new Thread(g3);
-        Thread t4 = new Thread(g4);
+        SobelTRF[] trfs = new SobelTRF[numthreads];
+        for(int i=0;i<numthreads;i++)
+        {
+            trfs[i] = new SobelTRF(source, destination, regions[i].x1, regions[i].y1, regions[i].x2, regions[i].y2, dirDataOutput);
+        }
 
-        t1.start();
-        t2.start();
-        t3.start();
-        t4.start();
-
-        // Let's just say blurring is 20% of the total time for now ;)
-        try { t1.join(); } catch (InterruptedException e) {  }
-        publishProgress("5");
-        try { t2.join(); } catch (InterruptedException e) {  }
-        publishProgress("5");
-        try { t3.join(); } catch (InterruptedException e) {  }
-        publishProgress("5");
-        try { t4.join(); } catch (InterruptedException e) {  }
-        publishProgress("5");
+        runTRFs(trfs);
     }
 
     private void peakFilter(ImageByteBuffer source, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
-        int halfy = source.getHeight()/2;
-        int halfx = source.getWidth()/2;
+        int numthreads = 4;
+
+        Rectangle[] regions = splitRegion(source.getWidth(), source.getHeight(), numthreads, 1);
 
         boolean[][] peakList = new boolean[source.getHeight()][source.getWidth()];
 
-        PeakFindTRF g1 = new PeakFindTRF(source, 1, 1, halfx, halfy, dirDataInput, peakLow, peakHigh, peakList);
-        PeakFindTRF g2 = new PeakFindTRF(source, 1, halfy, halfx, source.getHeight()-1, dirDataInput, peakLow, peakHigh, peakList);
-        PeakFindTRF g3 = new PeakFindTRF(source, halfx, 1, source.getWidth()-1, halfy, dirDataInput, peakLow, peakHigh, peakList);
-        PeakFindTRF g4 = new PeakFindTRF(source, halfx, halfy, source.getWidth()-1, source.getHeight()-1, dirDataInput, peakLow, peakHigh, peakList);
+        PeakFindTRF[] trfs = new PeakFindTRF[numthreads];
+        for(int i=0;i<numthreads;i++)
+        {
+            trfs[i] = new PeakFindTRF(source, regions[i].x1, regions[i].y1, regions[i].x2, regions[i].y2, dirDataInput, peakLow, peakHigh, peakList);
+        }
 
-        Thread t1 = new Thread(g1);
-        Thread t2 = new Thread(g2);
-        Thread t3 = new Thread(g3);
-        Thread t4 = new Thread(g4);
-
-        t1.start();
-        t2.start();
-        t3.start();
-        t4.start();
-
-        try { t1.join(); } catch (InterruptedException e) {  }
-        try { t2.join(); } catch (InterruptedException e) {  }
-        try { t3.join(); } catch (InterruptedException e) {  }
-        try { t4.join(); } catch (InterruptedException e) {  }
+        runTRFs(trfs);
 
         Log.d("uct.snapvote", "Identified first peaks.");
 
