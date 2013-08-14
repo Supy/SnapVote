@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Guard;
 
 import uct.snapvote.filter.BlobDetectorFilter;
 import uct.snapvote.filter.PeakFindTRF;
@@ -171,29 +172,35 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         return gbuffer;
     }
 
-    private void blur(ImageByteBuffer buffer1, ImageByteBuffer buffer2, int blurRadius) {
-        int halfy = buffer1.getHeight()/2;
-        int halfx = buffer1.getWidth()/2;
+    private void blur(ImageByteBuffer source, ImageByteBuffer destination, int blurRadius) {
+        int bordersize = blurRadius;
+        int numthreads = 4;
+        int threadwidth = source.getWidth() / numthreads;
 
-        GaussianTRF g1 = new GaussianTRF(buffer1, buffer2, blurRadius, blurRadius, halfx, halfy, blurRadius);
-        GaussianTRF g2 = new GaussianTRF(buffer1, buffer2, blurRadius, halfy, halfx, buffer1.getHeight()-blurRadius, blurRadius);
-        GaussianTRF g3 = new GaussianTRF(buffer1, buffer2, halfx, blurRadius, buffer1.getWidth()-blurRadius, halfy, blurRadius);
-        GaussianTRF g4 = new GaussianTRF(buffer1, buffer2, halfx, halfy, buffer1.getWidth()-blurRadius, buffer1.getHeight()-blurRadius, blurRadius);
+        // initialise processors
+        GaussianTRF[] trfs = new GaussianTRF[numthreads];
+        for(int i=0;i<numthreads;i++)
+        {
+            int fx = i* threadwidth;
+            int tx = fx + threadwidth;
+            if (fx==0) fx+=bordersize;
+            if (tx >= source.getWidth()-1) tx-= bordersize;
+            trfs[i] = new GaussianTRF(source, destination, fx, bordersize, tx, source.getHeight()-bordersize, blurRadius);
+        }
 
-        Thread t1 = new Thread(g1);
-        Thread t2 = new Thread(g2);
-        Thread t3 = new Thread(g3);
-        Thread t4 = new Thread(g4);
+        // initialise and start threads
+        Thread[] threads = new Thread[numthreads];
+        for(int i=0;i<numthreads;i++)
+        {
+            threads[i] = new Thread(trfs[i]);
+            threads[i].start();
+        }
 
-        t1.start();
-        t2.start();
-        t3.start();
-        t4.start();
-
-        try { t1.join(); } catch (InterruptedException e) {  }
-        try { t2.join(); } catch (InterruptedException e) {  }
-        try { t3.join(); } catch (InterruptedException e) {  }
-        try { t4.join(); } catch (InterruptedException e) {  }
+        // wait for completion
+        for(int i=0;i<numthreads;i++)
+        {
+            try { threads[i].join(); } catch (InterruptedException e) {  }
+        }
     }
 
     private void sobelFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataOutput) {
