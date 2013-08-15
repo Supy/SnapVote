@@ -139,8 +139,15 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
         int stripHeight = 500;
 
-        int num_layers = (stripHeight > imageHeight) ? 1 : (imageHeight /  stripHeight);
+        int num_layers = imageHeight /  stripHeight;
         int rem_layer = imageHeight % stripHeight;
+
+        if (stripHeight > imageHeight)
+        {
+            num_layers = 0;
+            rem_layer = imageHeight;
+        }
+
         Bitmap strip;
 
         BitmapFactory.Options postOptions = new BitmapFactory.Options();
