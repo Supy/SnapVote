@@ -273,6 +273,9 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
         Log.d("uct.snapvote", "Identified first peaks.");
 
+        // Turn potential peaks that surround peaks into
+        // peaks themselves. Repeat this process until no
+        // more peaks are created.
         boolean more;
         do{
             more = false;
@@ -304,21 +307,29 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             }
         }while(more);
 
-        // Clear out remaining potential peaks that have lost their potential ;(
-        for(int y = 1; y < source.getHeight()-1; y++){
-            for(int x = 1; x < source.getWidth()-1; x++){
+        // TODO: Move this into settings.
+        final int MIN_EXPANSION = 0;
+        final int MAX_EXPANSION = 5;
 
-                byte pixel = source.get(x, y);
+        // Clear out remaining potential peaks that have lost their potential ;(
+        for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++){
+
+            // Dilate each pixel. Dilation amount increases the nearer to the bottom of the image
+            // you are. This is because depth of students is further away at the back.
+            int expand = MIN_EXPANSION + (int) (((MAX_EXPANSION - MIN_EXPANSION) *  (y * 1.0 / source.getHeight())) + 0.5);
+
+            for(int x = expand; x < source.getWidth()-expand; x++){
+
+               boolean peak = source.get(x, y) == (byte) 255;
 
                 // Expand any peaks out by 1px to fill small gaps.
-                if(pixel == (byte)255){
-                    visitpixels.set((y-1) * source.getWidth() +x -1, (y-1) * source.getWidth() +x +1);
-                    visitpixels.set((y) * source.getWidth() +x -1, (y) * source.getWidth() +x +1);
-                    visitpixels.set((y+1) * source.getWidth() +x -1, (y+1) * source.getWidth() +x +1);
-
-                    destination.set(x-1, y-1, (byte)60); destination.set(x, y-1, (byte)60); destination.set(x+1, y-1, (byte)60);
-                    destination.set(x-1, y, (byte)60); destination.set(x, y, (byte)60); destination.set(x+1, y, (byte)60);
-                    destination.set(x-1, y+1, (byte)60); destination.set(x, y+1, (byte)60); destination.set(x+1, y+1, (byte)60);
+                if(peak){
+                    for(int p = -expand; p < expand; p++){
+                        visitpixels.set((y+p) * source.getWidth() + x - expand, (y+p) * source.getWidth() + x + expand);
+                        for(int q = -expand; q < expand; q++){
+                            destination.set(x+q, y+p, (byte) 60);
+                        }
+                    }
                 }
             }
         }
