@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Guard;
 import java.util.BitSet;
 
 import uct.snapvote.filter.BlobDetectorFilter;
@@ -39,51 +38,61 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         this.processActivity = processActivity;
     }
 
-
+    /* doInBackground
+    This is the main async task run by the activity. It uses an async task rather than a thread
+    because of the built in progress reporting tools and better integration into the android
+    environment.
+     */
     @Override
     protected Integer doInBackground(String... strings) {
 
-        loadPreferences();
-
         try {
 
+            // Load configuration values from the settings page
+            loadPreferences();
+
+            // Start timing
+            DebugTimer timer = new DebugTimer();
+
+            // 0. == Read the image into the first buffer
             ImageByteBuffer buffer1 = readGrayscale(processActivity.imageUri);
+            publishProgress("1", "Image Loaded: " + timer.toStringSplit()); timer.split();
+
+            // Create two additional buffers for processing stages
             ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
             ImageByteBuffer buffer3 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
-            DebugTimer totalTimer = new DebugTimer();
-            DebugTimer debugTimer = new DebugTimer();
-
-            // Gaussian blur
+            // 1. == Gaussian blur (buffer1 = input, buffer2 = output)
             blur(buffer1, buffer2, gaussianBlurRadius);
-            publishProgress("1", "Blur: " + debugTimer.toString()); debugTimer.restart();
+            publishProgress("1", "Blurred: " + timer.toStringSplit()); timer.split();
 
-            // Sobel filter
+            // 2. == Sobel filter (buffer2 = input, buffer1 = output, buffer3 = edge angle output)
             sobelFilter(buffer2, buffer1, buffer3);
-            publishProgress("1", "Sobel: " + debugTimer.toString()); debugTimer.restart();
+            publishProgress("1", "Sobel Filter: " + timer.toStringSplit()); timer.split();
 
+            // 3. == Canny edge detection
             BitSet visitedPixels = new BitSet(buffer1.getHeight() * buffer1.getWidth());
-
             buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
-            // Canny edge detection
-            // In-place editing, don't need another buffer.
             peakFilter(buffer1, buffer2, buffer3, visitedPixels, cannyPeakLow, cannyPeakHigh);
-            publishProgress("1", "Peaked: " + debugTimer.toString()); debugTimer.restart();
+            publishProgress("1", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
+            // == Garbage Collection
             buffer1 = null;
             buffer3 = null;
             System.gc();
 
+            // 4. == Blob Detection
             BlobDetectorFilter bdf = new BlobDetectorFilter(buffer2, visitedPixels, buffer2.getWidth(), buffer2.getHeight());
             bdf.run();
-            publishProgress("1", "Blob label: " + debugTimer.toString()); debugTimer.restart();
-            publishProgress("1", "Total Load & Process Time: " + totalTimer.toString());
+            publishProgress("1", "Blob Detect: " + timer.toStringSplit());
+            publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
 
-            // save to sdcard in order to debug
+            // 5. == Create output bitmap
             Bitmap testImage = buffer2.createBitmap();
-            publishProgress("1", "Bitmap: " + debugTimer.toString()); debugTimer.restart();
+            publishProgress("1", "Created Bitmap");
 
+            // 6. == Save to sdcard0/Pictures
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             testImage.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
             File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
@@ -92,11 +101,10 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             FileOutputStream fo = new FileOutputStream(f);
             fo.write(bytes.toByteArray());
             fo.close();
-            publishProgress("1", "Save: " + debugTimer.toString()); debugTimer.restart();
-            Log.d("uct.snapvote", "Saved image to "+f.getAbsolutePath());
+            publishProgress("1", "Saved.");
 
         } catch (IOException e) {
-
+            // TODO: report this error in a better way even if it doesn't happen
         }
         return 0;
     }
@@ -107,10 +115,13 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         gaussianBlurRadius = Integer.parseInt(mySharedPreferences.getString("gaussian_blur_radius", "2"));
         cannyPeakLow = Integer.parseInt(mySharedPreferences.getString("canny_peak_low", "70"));
         cannyPeakHigh = Integer.parseInt(mySharedPreferences.getString("canny_peak_high", "150"));
-
-        Log.d("uct.snapvote", "Preferences loaded.");
     }
 
+    /* readGrayscale
+    Reads the image into a grayscale byte buffer using strip-based loading techniques. Because
+    the entire source image can't fit into RAM, strips have to be used to keep this under control.
+    note: 500 pixel high strips are used. (unless image is <500px high)
+     */
     private ImageByteBuffer readGrayscale(String datastr) throws IOException {
         // first get content uri of image on phone
         Uri contentURI = Uri.parse(datastr);
@@ -124,9 +135,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         BitmapFactory.decodeStream(in,null,preOptions);
         int imageHeight = preOptions.outHeight;
         int imageWidth = preOptions.outWidth;
-
-
-        long t1 = System.currentTimeMillis();
 
         // hurrah now we know how big our grayscale byte buffer is!
         ImageByteBuffer gbuffer = new ImageByteBuffer(imageWidth, imageHeight);
@@ -178,18 +186,34 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                 gbuffer.set(x, imageHeight-rem_layer+y, (byte)g);
             }
 
-        long t2 = System.currentTimeMillis();
-
-        publishProgress("1", String.format("Image loaded time: %d.%ds", (t2-t1) / 1000, (t2-t1) % 1000) );
         return gbuffer;
     }
 
-    public class Rectangle
-    {
+    // Rectangle Struct
+    public class Rectangle {
         int x1, y1;
         int x2, y2;
     }
 
+    /* splitRegion
+    Split the given region into a number of Rectangles.
+    Region is divided like this:
+
+    #######################################
+    #######################################
+    ##          |         |              ##
+    ##          |         |              ##
+    ##          |         |              ##
+    ##          |         |              ##
+    ##  Region0 | Region1 |      ...     ##
+    ##          |         |              ##
+    ##          |         |              ##
+    ##          |         |              ##
+    ##          |         |              ##
+    #######################################  | border px
+    #######################################  /
+
+     */
     private Rectangle[] splitRegion(int width, int height, int num, int border) {
         int subwidth = width / num;
         Rectangle[] o = new Rectangle[num];
