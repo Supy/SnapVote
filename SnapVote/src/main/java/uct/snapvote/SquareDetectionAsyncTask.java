@@ -25,6 +25,7 @@ import uct.snapvote.filter.GaussianTRF;
 import uct.snapvote.filter.SobelTRF;
 import uct.snapvote.filter.ThreadedBaseRegionFilter;
 import uct.snapvote.util.DebugTimer;
+import uct.snapvote.util.SobelAngleClassifier;
 
 /**
  * Created by Ben on 8/4/13.
@@ -67,6 +68,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("1", "Blurred: " + timer.toStringSplit()); timer.split();
 
             // 2. == Sobel filter (buffer2 = input, buffer1 = output, buffer3 = edge angle output)
+            SobelAngleClassifier.prepare();
             sobelFilter(buffer2, buffer1, buffer3);
             publishProgress("1", "Sobel Filter: " + timer.toStringSplit()); timer.split();
 

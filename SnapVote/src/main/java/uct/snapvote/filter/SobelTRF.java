@@ -3,6 +3,7 @@ package uct.snapvote.filter;
 import android.util.Log;
 
 import uct.snapvote.ImageByteBuffer;
+import uct.snapvote.util.SobelAngleClassifier;
 
 /**
  * Created by Ben on 8/7/13.
@@ -23,33 +24,24 @@ public class SobelTRF extends ThreadedBaseRegionFilter {
 
     public void run() {
         Log.d("uct.snapvote", "start " + this.x1 + " " + this.y1);
+
+        // Loop through all pixels in the given region
+
         for(int y= y1;y< y2;y++) {
             for(int x= x1;x< x2;x++) {
 
-                int Gx = -(source.get(x-1, y-1) & 0xFF) - 2*(source.get(x, y-1) & 0xFF) -(source.get(x+1, y-1) & 0xFF) +
-                        (source.get(x-1, y+1) & 0xFF) + 2*(source.get(x, y+1) & 0xFF) +(source.get(x+1, y+1) & 0xFF);
+                int g00 = source.get(x-1, y-1) & 0xFF; int g01 = source.get(x, y-1) & 0xFF; int g02 = source.get(x+1, y-1) & 0xFF;
+                int g10 = source.get(x-1, y) & 0xFF; int g11 = source.get(x, y) & 0xFF; int g12 = source.get(x+1, y) & 0xFF;
+                int g20 = source.get(x-1, y+1) & 0xFF; int g21 = source.get(x, y+1) & 0xFF; int g22 = source.get(x+1, y+1) & 0xFF;
 
-                int Gy = -(source.get(x-1, y-1) & 0xFF) - 2*(source.get(x-1, y) & 0xFF) -(source.get(x-1, y+1) & 0xFF) +
-                        (source.get(x+1, y-1) & 0xFF) + 2*(source.get(x+1, y) & 0xFF) +(source.get(x+1, y+1) & 0xFF);
-
-                int Gm = ((int) Math.sqrt(Gx*Gx + Gy*Gy));
-
-                double angle = (Math.atan2(Gy,Gx) * 180) / Math.PI;
-                angle = (angle + 180) % 180 + 22.5;
-
-                int acat = 0;
-                if (angle < 180) acat = 135;
-                if (angle < 135) acat = 90;
-                if (angle < 90) acat = 45;
-                if (angle < 45) acat = 0;
+                int Gx = -g00 -2*g01 -g02 +g20 +2*g21 +g22;
+                int Gy = -g00 -2*g10 -g20 +g02 +2*g12 +g22;
 
                 // Store gradient direction
-                dirDataOutput.set(x, y, (byte)acat);
-
-                if (Gm > 255) Gm = 255;
+                dirDataOutput.set(x, y, SobelAngleClassifier.classify(Gx/10,Gy/10));
 
                 // Store gradient value
-                destination.set(x,y, (byte)Gm);
+                destination.set(x,y, SobelAngleClassifier.magnify(Gx/10, Gy/10));
             }
         }
 
