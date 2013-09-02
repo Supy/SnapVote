@@ -29,11 +29,11 @@ public class BlobDetectorFilter extends BaseRegionFilter {
     static class Blob
     {
         public static final int MIN_MASS = 35;
-        public static final double MAX_RATIO = 1.5;
+        public static final double MAX_RATIO = 2.0;
         public static final double MIN_AREA = 0.6;
-        public int xMin = Integer.MAX_VALUE;;
+        public int xMin = Integer.MAX_VALUE;
         public int xMax;
-        public int yMin = Integer.MAX_VALUE;;
+        public int yMin = Integer.MAX_VALUE;
         public int yMax;
         public int mass;
 
@@ -71,7 +71,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
             if(ratio > MAX_RATIO)
                 return false;
 
-            double areaFilled = mass * 1.0 / (width * height);
+            //double areaFilled = mass * 1.0 / (width * height);
 
             //if(areaFilled < MIN_AREA)
             //    return false;
