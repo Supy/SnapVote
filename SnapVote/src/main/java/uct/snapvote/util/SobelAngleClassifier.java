@@ -6,8 +6,8 @@ package uct.snapvote.util;
 public class SobelAngleClassifier {
 
     static final int MAX = 1020;
-    static final int RES = 1; // power of 2!
-    static final int BUCKET = (MAX*2) >> RES;
+    static final int RES = 2; // power of 2
+    static final int BUCKET = (MAX<<1)>>RES;
 
     private static byte[] angles;
     private static byte[] hypclass;
@@ -25,11 +25,12 @@ public class SobelAngleClassifier {
             {
                 int index = offset + x;
 
-                int gx = x<<RES-MAX;
-                int gy = y<<RES-MAX;
+                int gx = (x<<RES)-MAX;
+                int gy = (y<<RES)-MAX;
 
                 int degrees = (int)(Math.atan2(gy, gx)*180/Math.PI);
-                degrees = (degrees + 180) % 180;
+
+                degrees = (degrees + 180) % 180 + 23;
 
                 byte acat = (byte)0;
                 if (degrees < 45) acat = (byte)0;
