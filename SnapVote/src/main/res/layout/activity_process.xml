@@ -6,7 +6,9 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context=".ProcessActivity">
+    tools:context=".ProcessActivity"
+    android:keepScreenOn="true"
+    android:background="@color/background_color">
 
     <ProgressBar
             style="?android:attr/progressBarStyleHorizontal"
@@ -28,4 +30,13 @@
             android:layout_centerHorizontal="true"
             android:background="#d9d9d9"
             android:lines="30"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Analysing image, please wait..."
+        android:id="@+id/txtProcessing"
+        android:layout_above="@+id/progressBar"
+        android:layout_alignParentLeft="true" />
 </RelativeLayout>
