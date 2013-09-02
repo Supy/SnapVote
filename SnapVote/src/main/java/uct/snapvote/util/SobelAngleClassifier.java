@@ -5,66 +5,79 @@ package uct.snapvote.util;
  */
 public class SobelAngleClassifier {
 
-    // TODO: Requires some experimental range optimisation
-    
-    static final int MAG = 400;
-    static final int MAG2 = MAG*2;
-    static byte[] angles;
-    static byte[] magnitudes;
+    static final int MAX = 1020;
+    static final int RES = 1; // power of 2!
+    static final int BUCKET = (MAX*2) >> RES;
+
+    private static byte[] angles;
+    private static byte[] hypclass;
 
     public static void prepare()
     {
-        angles = new byte[MAG2 * MAG2];
-        magnitudes = new byte[MAG2 * MAG2];
+        angles = new byte[BUCKET * BUCKET];
+        hypclass = new byte[BUCKET * BUCKET];
 
-        for(int i=0;i<MAG2;i++)
+        for(int y=0;y<BUCKET;y++)
         {
-            for(int j=0;j<MAG2;j++)
+            int offset = y*BUCKET;
+
+            for(int x=0;x<BUCKET;x++)
             {
-                int Gx = j-MAG;
-                int Gy = i-MAG;
+                int index = offset + x;
 
-                float angle = (float)(Math.atan2(Gy,Gx) * 180 / Math.PI);
+                int gx = x<<RES-MAX;
+                int gy = y<<RES-MAX;
 
-                angle = (angle + 180) % 180;
+                int degrees = (int)(Math.atan2(gy, gx)*180/Math.PI);
+                degrees = (degrees + 180) % 180;
 
-                int acat = 0;
-                if (angle < 45) acat = 0;
-                else if (angle < 90) acat = 45;
-                else if (angle < 135) acat = 90;
-                else if (angle < 180) acat = 135;
+                byte acat = (byte)0;
+                if (degrees < 45) acat = (byte)0;
+                else if (degrees < 90) acat = (byte)45;
+                else if (degrees < 135) acat = (byte)90;
+                else if (degrees < 180) acat = (byte)135;
 
-                angles[i*MAG2 + j] = (byte)acat;
+                angles[index] = acat;
 
-                int Gm = Gx * Gx + Gy * Gy;
-                if (Gm > 65025)
-                    Gm = 255;
-                else
-                    Gm = FastMath.fastnorm(Gx, Gy);
+                int gm = (int)Math.sqrt(gy*gy + gx*gx);
+                if(gm > 255) gm = 255;
 
-                magnitudes[i*MAG2 + j] = (byte)Gm;
+                hypclass[index] = (byte)gm;
+
             }
         }
-
-
-
-
     }
 
-    public static byte classify(int gx, int gy)
+    public static byte atan2cat(int gy, int gx)
     {
-        int i = gy+MAG;
-        int j = gx+MAG;
 
-        return angles[i*MAG2 + j];
+        gx+=MAX;
+
+        gx=gx>>RES;
+
+        gy+=MAX;
+
+        gy=gy>>RES;
+
+        int index = gy*BUCKET + gx;
+
+        return angles[index];
     }
 
-    public static byte magnify(int gx, int gy)
+    public static byte mag(int gy, int gx)
     {
-        int i = gy+MAG;
-        int j = gx+MAG;
 
-        return magnitudes[i*MAG2 + j];
+        gx+=MAX;
+
+        gx=gx>>RES;
+
+        gy+=MAX;
+
+        gy=gy>>RES;
+
+        int index = gy*BUCKET + gx;
+
+        return hypclass[index];
     }
 
 
