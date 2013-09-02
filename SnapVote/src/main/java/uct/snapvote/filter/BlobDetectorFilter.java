@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import uct.snapvote.ImageByteBuffer;
+import uct.snapvote.util.BlobSampler;
 import uct.snapvote.util.IntQueue;
 
 /**
@@ -26,7 +28,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
         this.height = height;
     }
 
-    static class Blob
+    public static class Blob
     {
         public static final int MIN_MASS = 35;
         public static final double MAX_RATIO = 2.0;
@@ -158,6 +160,11 @@ public class BlobDetectorFilter extends BaseRegionFilter {
         }
 
         Log.d("uct.snapvote", "Blobs: "+blobs.size());
+
+        PriorityQueue<BlobSampler.Sample> pixelSamples = BlobSampler.createSamples(blobs, this.width);
+        // TODO: we've got the samples and their coordinates, now we need get their colours from the original image.
+
+        Log.d("uct.snapvote", pixelSamples.size()+" blob samples created.");
 
         // Draw borders around blobs.
         for(Blob b : blobs)
