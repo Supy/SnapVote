@@ -52,12 +52,14 @@ public class BlobSampler {
             if(oTopIndex >= 0){
                 Sample oTop = new Sample(oTopIndex, blob, false);
                 samples.add(oTop);
+                blob.attachSample(oTop);
             }
 
             int oBottomIndex = ((centerY + blobHeight + heightPercentage + PIXEL_OFFSET) * imageWidth) + centerX;
             if(oBottomIndex <= maxPixelIndex){
                 Sample oBottom = new Sample(oBottomIndex, blob, false);
                 samples.add(oBottom);
+                blob.attachSample(oBottom);
             }
 
             int oLeftOffset = centerX - blobWidth - widthPercentage - PIXEL_OFFSET;
@@ -65,6 +67,7 @@ public class BlobSampler {
                 int oLeftIndex = (centerY * imageWidth) + oLeftOffset;
                 Sample oLeft = new Sample(oLeftIndex, blob, false);
                 samples.add(oLeft);
+                blob.attachSample(oLeft);
             }
 
             int oRightOffset = centerX + blobWidth + widthPercentage + PIXEL_OFFSET;
@@ -72,6 +75,7 @@ public class BlobSampler {
                 int oRightIndex = (centerY * imageWidth) + oRightOffset;
                 Sample oRight = new Sample(oRightIndex, blob, false);
                 samples.add(oRight);
+                blob.attachSample(oRight);
             }
             // --
 
@@ -79,18 +83,22 @@ public class BlobSampler {
             int iTopIndex = ((centerY - heightPercentage - PIXEL_OFFSET) * imageWidth) + centerX;
             Sample iTop = new Sample(iTopIndex, blob, true);
             samples.add(iTop);
+            blob.attachSample(iTop);
 
             int iBottomIndex = ((centerY + heightPercentage + PIXEL_OFFSET) * imageWidth) + centerX;
             Sample iBottom = new Sample(iBottomIndex, blob, true);
             samples.add(iBottom);
+            blob.attachSample(iBottom);
 
             int iLeftIndex = (centerY * imageWidth) + centerX - widthPercentage - PIXEL_OFFSET;
             Sample iLeft = new Sample(iLeftIndex, blob, true);
             samples.add(iLeft);
+            blob.attachSample(iLeft);
 
             int iRightIndex = (centerY * imageWidth) + centerX + widthPercentage + PIXEL_OFFSET;
             Sample iRight = new Sample(iRightIndex, blob, true);
             samples.add(iRight);
+            blob.attachSample(iRight);
             // --
         }
 

@@ -7,6 +7,7 @@ import java.util.BitSet;
 import java.util.List;
 
 import uct.snapvote.ImageByteBuffer;
+import uct.snapvote.util.BlobSampler;
 import uct.snapvote.util.IntQueue;
 
 /**
@@ -37,6 +38,8 @@ public class BlobDetectorFilter extends BaseRegionFilter {
         public int yMin = Integer.MAX_VALUE;
         public int yMax;
         public int mass;
+        public List<BlobSampler.Sample> samples;
+        public byte assignedColour;
 
         public void addPixel(int pixelX, int pixelY)
         {
@@ -78,6 +81,13 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 return false;
 
             return true;
+        }
+
+        public void attachSample(BlobSampler.Sample sample){
+            if(samples == null)
+                samples = new ArrayList<BlobSampler.Sample>();
+
+            samples.add(sample);
         }
 
         public String toString()
