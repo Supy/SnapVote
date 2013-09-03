@@ -1,9 +1,19 @@
 package uct.snapvote;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MotionEvent;
+import android.widget.ImageView;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,8 +35,6 @@ public class ResultActivity extends Activity {
     // Components
     BarGraph barGraph;
 
-    // Touch control
-    float lastX;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,26 +72,92 @@ public class ResultActivity extends Activity {
         barGraph.addBar(1,"Green", Color.GREEN);
 
 
+        ImageView mImage = (ImageView) findViewById(R.id.results_imageview);
+
+        loadThumbnail(mImage, imageUri);
+
     }
 
 
-    public boolean onTouchEvent(MotionEvent e) {
-        switch (e.getAction())
-        {
-            // when user first touches the screen to swap
-            case MotionEvent.ACTION_DOWN:
-            {
-                float fingerx = e.getX();
-                break;
-            }
-            case MotionEvent.ACTION_UP:
-            {
-                float fingerx = e.getX();
-                break;
+    private void loadThumbnail(ImageView iv, String uri) {
+
+        Uri contentURI = Uri.parse(uri);
+        ContentResolver cr = getContentResolver();
+
+        InputStream in = null;
+        try {
+            in = cr.openInputStream(contentURI);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        // read image attributes
+        BitmapFactory.Options iOptions = new BitmapFactory.Options();
+        iOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(in,null,iOptions);
+        int imageHeight = iOptions.outHeight;
+        int imageWidth = iOptions.outWidth;
+
+        try {
+            in = cr.openInputStream(contentURI);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        iOptions.inPreferredConfig = Bitmap.Config.RGB_565;
+        int inSampleSize = 1;
+
+        if (imageHeight > iv.getHeight()) {
+            inSampleSize = Math.round((float)imageHeight / (float)200);
+        }
+
+        int expectedWidth = imageWidth / inSampleSize;
+
+        if (expectedWidth > iv.getWidth()) {
+            //if(Math.round((float)width / (float)reqWidth) > inSampleSize) // If bigger SampSize..
+            inSampleSize = Math.round((float)imageWidth / (float)400);
+        }
+
+
+        iOptions.inSampleSize = inSampleSize;
+
+        // Decode bitmap with inSampleSize set
+        iOptions.inJustDecodeBounds = false;
+
+        Bitmap bm = BitmapFactory.decodeStream(in, null, iOptions);
+
+        android.graphics.Bitmap.Config bitmapConfig = bm.getConfig();
+        Bitmap bmcpy = bm.copy(bitmapConfig, true);
+
+        Canvas canvas = new Canvas(bmcpy);
+
+        Paint p = new Paint();
+        p.setStyle(Paint.Style.FILL);
+
+        float divx = (float)bm.getWidth() / imageWidth;
+        float divy = (float)bm.getHeight() / imageHeight;
+
+        for(List<DetectedSquare> group : colourGroups.values()) {
+            for(DetectedSquare square : group) {
+
+                p.setColor(square.Colour());
+
+                int x = (int)(divx * square.Left());
+                int y = (int)(divy * square.Top());
+
+                int x2 = (int)(divx * square.Right())+1;
+                int y2 = (int)(divy * square.Bottom())+1;
+                
+                canvas.drawRect(x,y,x2,y2,p);
+
             }
         }
-        return false;
+
+
+        iv.setImageBitmap(bmcpy);
+
     }
+
 
 
 
