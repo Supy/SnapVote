@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
@@ -52,7 +53,7 @@ public class PreprocessActivity extends Activity {
 
         intent.putExtra("ImageUri", uristr);
         // TODO setup proper colours here as integers
-        intent.putExtra("ColourArray", new int[]{ 0 });
+        intent.putExtra("ColourArray", new int[]{ Color.BLUE });
 
         startActivity(intent);
     }

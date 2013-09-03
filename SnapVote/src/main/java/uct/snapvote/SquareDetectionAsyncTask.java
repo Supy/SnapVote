@@ -17,7 +17,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
+import java.util.Random;
 
 import uct.snapvote.filter.BlobDetectorFilter;
 import uct.snapvote.filter.PeakFindTRF;
@@ -27,6 +30,7 @@ import uct.snapvote.filter.ThreadedBaseRegionFilter;
 import uct.snapvote.filter.ValidVoteFilter;
 import uct.snapvote.util.DebugTimer;
 import uct.snapvote.util.ImageInputStream;
+import uct.snapvote.util.DetectedSquare;
 import uct.snapvote.util.SobelAngleClassifier;
 
 /**
@@ -97,6 +101,8 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("1", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
 
+
+            // TODO: Remove the saving when not required
             // 6. == Create output bitmap
             Bitmap testImage = buffer2.createBitmap();
             publishProgress("1", "Created Bitmap");
@@ -112,10 +118,33 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             fo.close();
             publishProgress("1", "Saved.");
 
-        } catch (IOException e) {
-            // TODO: report this error in a better way even if it doesn't happen
+            // 6. Output Data
+
+            // FAKE for now
+            Random r = new Random();
+            List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
+            for(int n=0;n<60;n++)
+            {
+                int c = processActivity.colourArray[r.nextInt(processActivity.colourArray.length)];
+
+                int x1 = r.nextInt(buffer1.getWidth()-200)+50;
+                int y1 = r.nextInt(buffer1.getHeight()-200)+50;
+
+                int x2 = x1 + r.nextInt(100);
+                int y2 = y1 + r.nextInt(100);
+
+                detectedSquares.add(new DetectedSquare(x1, y1, x2, y2, c));
+            }
+
+            // Write data to process activity and finish
+            processActivity.signalResult(detectedSquares);
+
+            return 0;
+
+        } catch (Exception e) {
+            processActivity.signalFailure();
         }
-        return 0;
+        return 1;
     }
 
     private void loadPreferences(){
