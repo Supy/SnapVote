@@ -33,7 +33,7 @@ public class ResultActivity extends Activity {
         setContentView(R.layout.activity_result);
 
         // == Assign components
-        barGraph = (BarGraph) findViewById(R.id.bargraph);
+        barGraph = (BarGraph) findViewById(R.id.results_bargraph);
 
         // == Extract Extras
         imageUri = getIntent().getStringExtra("ImageUri");
