@@ -1,14 +1,14 @@
 package uct.snapvote;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MotionEvent;
-import android.widget.ViewFlipper;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import uct.snapvote.components.BarGraph;
 import uct.snapvote.util.DetectedSquare;
 import uct.snapvote.util.DetectedSquareListSerialiser;
 
@@ -23,6 +23,7 @@ public class ResultActivity extends Activity {
     HashMap<Integer, List<DetectedSquare>> colourGroups;
 
     // Components
+    BarGraph barGraph;
 
     // Touch control
     float lastX;
@@ -32,6 +33,7 @@ public class ResultActivity extends Activity {
         setContentView(R.layout.activity_result);
 
         // == Assign components
+        barGraph = (BarGraph) findViewById(R.id.bargraph);
 
         // == Extract Extras
         imageUri = getIntent().getStringExtra("ImageUri");
@@ -53,8 +55,13 @@ public class ResultActivity extends Activity {
             colourGroups.get(c).add(s);
         }
 
-        // == Render counts
+        // == Render bars
 
+        // FAKE
+        barGraph.addBar(10,"Red", Color.RED);
+        barGraph.addBar(0,"Magenta", Color.MAGENTA);
+        barGraph.addBar(5,"Blue", Color.BLUE);
+        barGraph.addBar(1,"Green", Color.GREEN);
 
 
     }
@@ -77,4 +84,8 @@ public class ResultActivity extends Activity {
         }
         return false;
     }
+
+
+
+
 }
