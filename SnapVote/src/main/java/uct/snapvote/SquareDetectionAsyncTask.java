@@ -66,7 +66,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             // 0. == Read the image into the first buffer
             ImageInputStream imageInputStream = new ImageInputStream(processActivity.imageUri, processActivity.getContentResolver());
             ImageByteBuffer buffer1 = readGrayscale(imageInputStream);
-            publishProgress("1", "Image Loaded: " + timer.toStringSplit()); timer.split();
+            publishProgress("13", "Image Loaded: " + timer.toStringSplit()); timer.split();
 
             // Create two additional buffers for processing stages
             ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
@@ -74,18 +74,18 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             // 1. == Gaussian blur (buffer1 = input, buffer2 = output)
             blur(buffer1, buffer2, gaussianBlurRadius);
-            publishProgress("1", "Blurred: " + timer.toStringSplit()); timer.split();
+            publishProgress("12", "Blurred: " + timer.toStringSplit()); timer.split();
 
             // 2. == Sobel filter (buffer2 = input, buffer1 = output, buffer3 = edge angle output)
             sobelFilter(buffer2, buffer1, buffer3);
-            publishProgress("1", "Sobel Filter: " + timer.toStringSplit()); timer.split();
+            publishProgress("7", "Sobel Filter: " + timer.toStringSplit()); timer.split();
 
             // 3. == Canny edge detection
             BitSet visitedPixels = new BitSet(buffer1.getHeight() * buffer1.getWidth());
             buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
             peakFilter(buffer1, buffer2, buffer3, visitedPixels, cannyPeakLow, cannyPeakHigh);
-            publishProgress("1", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
+            publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
             // == Garbage Collection
             buffer1 = null;
@@ -95,11 +95,11 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             // 4. == Blob Detection
             BlobDetectorFilter bdf = new BlobDetectorFilter(buffer2, visitedPixels, buffer2.getWidth(), buffer2.getHeight());
             bdf.run();
-            publishProgress("1", "Blob Detect: " + timer.toStringSplit());timer.split();
+            publishProgress("39", "Blob Detect: " + timer.toStringSplit());timer.split();
 
             // 5. == Blob Filtering
             ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer2);
-            publishProgress("1", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
+            publishProgress("9", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
 
 

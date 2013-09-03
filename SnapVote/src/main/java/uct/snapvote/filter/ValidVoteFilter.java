@@ -102,7 +102,7 @@ public class ValidVoteFilter{
         int correctBlobs = 0;
         int reds =0, blues=0, greens=0, blacks=0;
 
-        for(int i=blobList.size()-1; i >=0; i--){
+        for(int i = blobList.size()-1; i >= 0; i--){
             BlobDetectorFilter.Blob blob = blobList.get(i);
 
             int numRed = 0;
@@ -138,31 +138,33 @@ public class ValidVoteFilter{
                 }else if(v > 0.90 && s < 0.15){
                     numWhitesOutside++;
                 }
+            }
 
-                int maxColour = Math.max(Math.max(numBlack, numBlue), Math.max(numRed, numGreen));
+            int maxColour = Math.max(Math.max(numBlack, numBlue), Math.max(numRed, numGreen));
 
-                // A blob is considered a valid vote if:
-                //  - number of white outside samples >= 3 (i.e. on a white page)
-                // AND
-                //  - to be classified as a colour, the number of samples with that colour as their maximum component must be >= 3. (i.e. majority rules)
+            // A blob is considered a valid vote if:
+            //  - number of white outside samples >= 3 (i.e. on a white page)
+            // AND
+            //  - to be classified as a colour, the number of samples with that colour as their maximum component must be >= 3. (i.e. majority rules)
 
-                if(numWhitesOutside >= 2 && maxColour >= 3){
-                    if(maxColour == numBlack){
-                        blob.assignedColour = 0;
-                        blacks++;
-                    }else if(maxColour == numRed){
-                        blob.assignedColour = 1;
-                        reds++;
-                    }else if(maxColour == numGreen){
-                        blob.assignedColour = 2;
-                        greens++;
-                    }else{
-                        blob.assignedColour = 3;
-                        blues++;
-                    }
-
-                    correctBlobs++;
+            if(numWhitesOutside >= 2 && maxColour >= 3){
+                if(maxColour == numBlack){
+                    blob.assignedColour = 0;
+                    blacks++;
+                }else if(maxColour == numRed){
+                    blob.assignedColour = 1;
+                    reds++;
+                }else if(maxColour == numGreen){
+                    blob.assignedColour = 2;
+                    greens++;
+                }else{
+                    blob.assignedColour = 3;
+                    blues++;
                 }
+
+                correctBlobs++;
+            }else{
+                blobList.remove(i);
             }
         }
 
