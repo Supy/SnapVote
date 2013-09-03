@@ -24,7 +24,9 @@ import uct.snapvote.filter.PeakFindTRF;
 import uct.snapvote.filter.GaussianTRF;
 import uct.snapvote.filter.SobelTRF;
 import uct.snapvote.filter.ThreadedBaseRegionFilter;
+import uct.snapvote.filter.ValidVoteFilter;
 import uct.snapvote.util.DebugTimer;
+import uct.snapvote.util.ImageInputStream;
 import uct.snapvote.util.SobelAngleClassifier;
 
 /**
@@ -57,7 +59,8 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             DebugTimer timer = new DebugTimer();
 
             // 0. == Read the image into the first buffer
-            ImageByteBuffer buffer1 = readGrayscale(processActivity.imageUri);
+            ImageInputStream imageInputStream = new ImageInputStream(processActivity.imageUri, processActivity.getContentResolver());
+            ImageByteBuffer buffer1 = readGrayscale(imageInputStream);
             publishProgress("1", "Image Loaded: " + timer.toStringSplit()); timer.split();
 
             // Create two additional buffers for processing stages
@@ -87,14 +90,18 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             // 4. == Blob Detection
             BlobDetectorFilter bdf = new BlobDetectorFilter(buffer2, visitedPixels, buffer2.getWidth(), buffer2.getHeight());
             bdf.run();
-            publishProgress("1", "Blob Detect: " + timer.toStringSplit());
+            publishProgress("1", "Blob Detect: " + timer.toStringSplit());timer.split();
+
+            // 5. == Blob Filtering
+            ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream);
+            publishProgress("1", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
 
-            // 5. == Create output bitmap
+            // 6. == Create output bitmap
             Bitmap testImage = buffer2.createBitmap();
             publishProgress("1", "Created Bitmap");
 
-            // 6. == Save to sdcard0/Pictures
+            // 7. == Save to sdcard0/Pictures
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             testImage.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
             File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
@@ -124,28 +131,14 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
     the entire source image can't fit into RAM, strips have to be used to keep this under control.
     note: 500 pixel high strips are used. (unless image is <500px high)
      */
-    private ImageByteBuffer readGrayscale(String datastr) throws IOException {
-        // first get content uri of image on phone
-        Uri contentURI = Uri.parse(datastr);
-        ContentResolver cr = processActivity.getContentResolver();
-        // open file stream
-        InputStream in = cr.openInputStream(contentURI);
+    private ImageByteBuffer readGrayscale(ImageInputStream iis) throws IOException {
+        int imageWidth = iis.width;
+        int imageHeight = iis.height;
 
-        // read image attributes
-        BitmapFactory.Options preOptions = new BitmapFactory.Options();
-        preOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(in,null,preOptions);
-        int imageHeight = preOptions.outHeight;
-        int imageWidth = preOptions.outWidth;
-
-        // hurrah now we know how big our grayscale byte buffer is!
         ImageByteBuffer gbuffer = new ImageByteBuffer(imageWidth, imageHeight);
-
         publishProgress("1", String.format("Dimensions read - %dx%d", imageWidth, imageHeight) );
 
-        // reset input stream
-        in = cr.openInputStream(contentURI);
-        BitmapRegionDecoder regDec = BitmapRegionDecoder.newInstance(in, false);
+        BitmapRegionDecoder regDec = BitmapRegionDecoder.newInstance(iis.getInputStream(), false);
 
         int stripHeight = 500;
 
@@ -159,9 +152,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         }
 
         Bitmap strip;
-
         BitmapFactory.Options postOptions = new BitmapFactory.Options();
-        preOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
         for(int i=0;i<num_layers;i++) {
             Rect r = new Rect(0, i* stripHeight,imageWidth, (i+1)* stripHeight);

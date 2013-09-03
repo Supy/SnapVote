@@ -4,12 +4,9 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 
 import uct.snapvote.ImageByteBuffer;
-import uct.snapvote.util.BlobSampler;
 import uct.snapvote.util.IntQueue;
 
 /**
@@ -20,12 +17,14 @@ public class BlobDetectorFilter extends BaseRegionFilter {
     private BitSet visitedPixels;
     private int width;
     private int height;
+    private List<Blob> blobs;
 
     public BlobDetectorFilter(ImageByteBuffer source, BitSet pixelBitset, int width, int height){
         super(source, null);
         this.visitedPixels = pixelBitset;
         this.width = width;
         this.height = height;
+        this.blobs = new ArrayList<Blob>();
     }
 
     public static class Blob
@@ -89,11 +88,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
 
     @Override
     public void run(){
-
-        List<Blob> blobs = new ArrayList<Blob>();
         IntQueue pixelQueue = new IntQueue(42000);
-
-        int maxPixelIndex = width * height - 1;
 
         for(int y=1;y< height-1;y++)
         {
@@ -161,11 +156,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
 
         Log.d("uct.snapvote", "Blobs: "+blobs.size());
 
-        PriorityQueue<BlobSampler.Sample> pixelSamples = BlobSampler.createSamples(blobs, this.width);
-        // TODO: we've got the samples and their coordinates, now we need get their colours from the original image.
-
-        Log.d("uct.snapvote", pixelSamples.size()+" blob samples created.");
-
+        // TODO: Remove this code once the app is complete.
         // Draw borders around blobs.
         for(Blob b : blobs)
         {
@@ -183,5 +174,9 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 }
             }
         }
+    }
+
+    public List<Blob> getBlobList(){
+        return blobs;
     }
 }
