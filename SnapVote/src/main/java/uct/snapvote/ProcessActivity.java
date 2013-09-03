@@ -2,6 +2,8 @@ package uct.snapvote;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.app.Activity;
 import android.preference.DialogPreference;
@@ -13,14 +15,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import uct.snapvote.util.DetectedSquare;
+import uct.snapvote.util.DetectedSquareListSerialiser;
 
 public class ProcessActivity extends Activity {
 
-    // SIGNAL VALUES for the async task
-    static final int COMPLETE = 0x1000;
-    static final int FAILED = 0x1001;
 
     String imageUri;
     int[] colourArray;
@@ -38,7 +39,6 @@ public class ProcessActivity extends Activity {
         // first extract uri and required colours
         imageUri = getIntent().getStringExtra("ImageUri");
         colourArray = getIntent().getIntArrayExtra("ColourArray");
-
 
         // bind stuff
         tvConsole = (TextView) findViewById(R.id.textView);
@@ -63,6 +63,7 @@ public class ProcessActivity extends Activity {
         yesNoBox.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                // TODO : cancel async task properly
                 cancelProcessingAndReturn();
             }
         });
@@ -78,7 +79,7 @@ public class ProcessActivity extends Activity {
 
     private void cancelProcessingAndReturn() {
         // cancel the async task if it is running
-        if(processingTask == null || !processingTask.isCancelled())
+        if(processingTask != null && !processingTask.isCancelled())
         {
             processingTask.cancel(true);
         }
@@ -87,15 +88,25 @@ public class ProcessActivity extends Activity {
         ProcessActivity.this.finish();
     }
 
+    public void signalError(Exception e) {
+        Log.e("uct.snapvote", e.toString());
+        ProcessActivity.this.finish();
+    }
+
 
     // SUCCESS : Set the results returned by the async task
     public void signalResult(List<DetectedSquare> squareList) {
-
-    }
-
-    // FAILURE : Something went wrong
-    public void signalFailure() {
-        
+        Intent intent = new Intent(this, ResultActivity.class);
+        // send through image uri
+        intent.putExtra("ImageUri", imageUri);
+        // send through colour array
+        intent.putExtra("ColourArray", colourArray);
+        // serialise result
+        intent.putExtra("SquareList", DetectedSquareListSerialiser.Serialise(squareList));
+        // start it!
+        startActivity(intent);
+        // close this one
+        finish();
     }
 
     

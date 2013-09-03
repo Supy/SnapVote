@@ -119,16 +119,16 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("1", "Saved.");
 
             // 6. Output Data
-
             // FAKE for now
             Random r = new Random();
             List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
             for(int n=0;n<60;n++)
             {
-                int c = processActivity.colourArray[r.nextInt(processActivity.colourArray.length)];
+                int numcolors = processActivity.colourArray.length;
+                int c = processActivity.colourArray[r.nextInt(numcolors)];
 
-                int x1 = r.nextInt(buffer1.getWidth()-200)+50;
-                int y1 = r.nextInt(buffer1.getHeight()-200)+50;
+                int x1 = r.nextInt(buffer2.getWidth()-200)+50;
+                int y1 = r.nextInt(buffer2.getHeight()-200)+50;
 
                 int x2 = x1 + r.nextInt(100);
                 int y2 = y1 + r.nextInt(100);
@@ -136,13 +136,19 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                 detectedSquares.add(new DetectedSquare(x1, y1, x2, y2, c));
             }
 
+            if(isCancelled()) throw new InterruptedException();
+
             // Write data to process activity and finish
             processActivity.signalResult(detectedSquares);
 
             return 0;
 
-        } catch (Exception e) {
-            processActivity.signalFailure();
+        } catch (InterruptedException e) {
+            // async task was cancelled
+            processActivity.signalError(e);
+        } catch (IOException e) {
+            // some unexpected error occured
+            processActivity.signalError(e);
         }
         return 1;
     }
