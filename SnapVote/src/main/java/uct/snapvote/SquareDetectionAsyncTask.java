@@ -97,7 +97,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("1", "Blob Detect: " + timer.toStringSplit());timer.split();
 
             // 5. == Blob Filtering
-            ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream);
+            ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer2);
             publishProgress("1", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
 

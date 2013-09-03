@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import uct.snapvote.ImageByteBuffer;
 import uct.snapvote.util.BlobSampler;
 import uct.snapvote.util.ImageInputStream;
 
@@ -23,14 +24,16 @@ public class ValidVoteFilter{
     private ImageInputStream imageInputStream;
     private int imageWidth;
     private int imageHeight;
+    private ImageByteBuffer source;
 
     private PriorityQueue<BlobSampler.Sample> pixelSamples;
 
-    public ValidVoteFilter(List<BlobDetectorFilter.Blob> blobList, ImageInputStream imageInputStream){
+    public ValidVoteFilter(List<BlobDetectorFilter.Blob> blobList, ImageInputStream imageInputStream, ImageByteBuffer source){
         this.blobList = blobList;
         this.imageInputStream = imageInputStream;
         this.imageWidth = imageInputStream.width;
         this.imageHeight = imageInputStream.height;
+        this.source = source;
 
         try{
             getPixelSamples();
@@ -42,7 +45,7 @@ public class ValidVoteFilter{
     }
 
     private void getPixelSamples(){
-        pixelSamples = BlobSampler.createSamples(blobList, imageWidth, imageHeight);
+        pixelSamples = BlobSampler.createSamples(blobList, imageWidth, imageHeight, source);
         Log.d("uct.snapvote", pixelSamples.size()+" blob samples created.");
     }
 
@@ -110,7 +113,7 @@ public class ValidVoteFilter{
 
             for(BlobSampler.Sample sample : blob.samples){
 
-                // Easier to classify colours in Hue,Saturation,Lightness (HSL) format, so convert it.
+                // Easier to classify colours in Hue,Saturation,Value (HSV) format, so convert it.
                 float[] hsv = new float[3];
                 Color.colorToHSV(sample.colour, hsv);
 
