@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import uct.snapvote.components.BarGraph;
 import uct.snapvote.util.DetectedSquare;
@@ -65,12 +66,9 @@ public class ResultActivity extends Activity {
 
         // == Render bars
 
-        // FAKE
-        barGraph.addBar(10,"Red", Color.RED);
-        barGraph.addBar(0,"Magenta", Color.MAGENTA);
-        barGraph.addBar(5,"Blue", Color.BLUE);
-        barGraph.addBar(1,"Green", Color.GREEN);
-
+        for(Map.Entry<Integer, List<DetectedSquare>> group: colourGroups.entrySet()) {
+            barGraph.addBar(group.getValue().size(), Integer.toHexString(group.getKey()), group.getKey());
+        }
 
         ImageView mImage = (ImageView) findViewById(R.id.results_imageview);
 
@@ -147,7 +145,7 @@ public class ResultActivity extends Activity {
 
                 int x2 = (int)(divx * square.Right())+1;
                 int y2 = (int)(divy * square.Bottom())+1;
-                
+
                 canvas.drawRect(x,y,x2,y2,p);
 
             }

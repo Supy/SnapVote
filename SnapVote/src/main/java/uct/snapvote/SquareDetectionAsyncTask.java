@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -119,20 +120,18 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("1", "Saved.");
 
             // 6. Output Data
-            // FAKE for now
+
             Random r = new Random();
             List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
-            for(int n=0;n<60;n++)
-            {
-                int numcolors = processActivity.colourArray.length;
-                int c = processActivity.colourArray[r.nextInt(numcolors)];
 
-                int x1 = r.nextInt(buffer2.getWidth()-200)+50;
-                int y1 = r.nextInt(buffer2.getHeight()-200)+50;
+            processActivity.colourArray = new int[]{Color.BLACK, Color.RED, Color.GREEN, Color.BLUE};
 
-                int x2 = x1 + r.nextInt(100);
-                int y2 = y1 + r.nextInt(100);
-
+            for(BlobDetectorFilter.Blob b : bdf.getBlobList()) {
+                int c = processActivity.colourArray[b.assignedColour];
+                int x1 = b.xMin;
+                int y1 = b.yMin;
+                int x2 = b.xMax;
+                int y2 = b.yMax;
                 detectedSquares.add(new DetectedSquare(x1, y1, x2, y2, c));
             }
 
