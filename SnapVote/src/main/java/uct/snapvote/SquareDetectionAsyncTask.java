@@ -1,13 +1,11 @@
 package uct.snapvote;
 
-import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -17,11 +15,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Random;
 
 import uct.snapvote.filter.BlobDetectorFilter;
 import uct.snapvote.filter.PeakFindTRF;
@@ -29,6 +25,7 @@ import uct.snapvote.filter.GaussianTRF;
 import uct.snapvote.filter.SobelTRF;
 import uct.snapvote.filter.ThreadedBaseRegionFilter;
 import uct.snapvote.filter.ValidVoteFilter;
+import uct.snapvote.util.Blob;
 import uct.snapvote.util.DebugTimer;
 import uct.snapvote.util.ImageInputStream;
 import uct.snapvote.util.DetectedSquare;
@@ -36,6 +33,7 @@ import uct.snapvote.util.SobelAngleClassifier;
 
 /**
  * Created by Ben on 8/4/13.
+ *  
  */
 public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer> {
 
@@ -128,7 +126,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             processActivity.colourArray = new int[]{Color.BLACK, Color.RED, Color.GREEN, Color.BLUE};
 
-            for(BlobDetectorFilter.Blob b : bdf.getBlobList()) {
+            for(Blob b : bdf.getBlobList()) {
                 int c = processActivity.colourArray[b.assignedColour];
                 int x1 = b.xMin;
                 int y1 = b.yMin;

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 import uct.snapvote.ImageByteBuffer;
-import uct.snapvote.filter.BlobDetectorFilter;
 
 /**
  * Created by Justin on 2013/09/03.
@@ -16,12 +15,12 @@ public class BlobSampler {
     private static final double PERCENTAGE_OFFSET = 0.15;
 
     public static class Sample implements Comparable<Sample>{
-        public BlobDetectorFilter.Blob parent;
+        public Blob parent;
         public int pixelIndex;
         public int colour;
         public boolean insideSample;
 
-        public Sample(int pi, BlobDetectorFilter.Blob p, boolean iS){
+        public Sample(int pi, Blob p, boolean iS){
             parent = p;
             pixelIndex = pi;
             insideSample = iS;
@@ -33,12 +32,12 @@ public class BlobSampler {
         }
     }
 
-    public static PriorityQueue<Sample> createSamples(List<BlobDetectorFilter.Blob> blobList, int imageWidth, int imageHeight, ImageByteBuffer source){
+    public static PriorityQueue<Sample> createSamples(List<Blob> blobList, int imageWidth, int imageHeight, ImageByteBuffer source){
         PriorityQueue<Sample> samples = new PriorityQueue<Sample>(blobList.size() * 8);
 
         int maxPixelIndex = (imageWidth * imageHeight)-1;
 
-        for(BlobDetectorFilter.Blob blob : blobList){
+        for(Blob blob : blobList){
 
             // Calculate these once per blob and reuse.
             int centerX = (blob.xMax + blob.xMin)/2;

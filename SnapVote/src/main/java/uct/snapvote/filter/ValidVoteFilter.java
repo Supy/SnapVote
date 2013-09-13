@@ -12,15 +12,17 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 import uct.snapvote.ImageByteBuffer;
+import uct.snapvote.util.Blob;
 import uct.snapvote.util.BlobSampler;
 import uct.snapvote.util.ImageInputStream;
 
 /**
  * Created by Justin on 2013/09/03.
+ *
  */
 public class ValidVoteFilter{
 
-    private List<BlobDetectorFilter.Blob> blobList;
+    private List<Blob> blobList;
     private ImageInputStream imageInputStream;
     private int imageWidth;
     private int imageHeight;
@@ -28,7 +30,7 @@ public class ValidVoteFilter{
 
     private PriorityQueue<BlobSampler.Sample> pixelSamples;
 
-    public ValidVoteFilter(List<BlobDetectorFilter.Blob> blobList, ImageInputStream imageInputStream, ImageByteBuffer source){
+    public ValidVoteFilter(List<Blob> blobList, ImageInputStream imageInputStream, ImageByteBuffer source){
         this.blobList = blobList;
         this.imageInputStream = imageInputStream;
         this.imageWidth = imageInputStream.width;
@@ -103,7 +105,7 @@ public class ValidVoteFilter{
         int reds =0, blues=0, greens=0, blacks=0;
 
         for(int i = blobList.size()-1; i >= 0; i--){
-            BlobDetectorFilter.Blob blob = blobList.get(i);
+            Blob blob = blobList.get(i);
 
             int numRed = 0;
             int numGreen = 0;
