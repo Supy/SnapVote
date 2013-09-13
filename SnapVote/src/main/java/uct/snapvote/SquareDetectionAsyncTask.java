@@ -84,9 +84,14 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             BitSet visitedPixels = new BitSet(buffer1.getHeight() * buffer1.getWidth());
             buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
-            peakFilter(buffer1, buffer2, buffer3, visitedPixels, cannyPeakLow, cannyPeakHigh);
+            // buffer1 = input, input direction data
+            peakFilter(buffer1, buffer3, cannyPeakLow, cannyPeakHigh);  // INPLACE on buffer1
+
+            runExpansionFilter(buffer1, buffer2, visitedPixels);
+
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
+            /*
             // == Garbage Collection
             buffer1 = null;
             buffer3 = null;
@@ -101,7 +106,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer2);
             publishProgress("9", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
-
+            */
 
             // TODO: Remove the saving when not required
             // 6. == Create output bitmap
@@ -124,6 +129,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             Random r = new Random();
             List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
 
+            /*
             processActivity.colourArray = new int[]{Color.BLACK, Color.RED, Color.GREEN, Color.BLUE};
 
             for(BlobDetectorFilter.Blob b : bdf.getBlobList()) {
@@ -134,7 +140,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                 int y2 = b.yMax;
                 detectedSquares.add(new DetectedSquare(x1, y1, x2, y2, c));
             }
-
+            */
             if(isCancelled()) throw new InterruptedException();
 
             // Write data to process activity and finish
@@ -274,7 +280,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         }
     }
 
-
     private void blur(ImageByteBuffer source, ImageByteBuffer destination, int blurRadius) {
         int numthreads = 4;
 
@@ -303,26 +308,27 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         runTRFs(trfs);
     }
 
-    private void peakFilter(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataInput, BitSet visitpixels, int peakLow, int peakHigh) {
-
-
-
-        int numthreads = 4;
-
-        Rectangle[] regions = splitRegion(source.getWidth(), source.getHeight(), numthreads, 1);
+    private void peakFilter(ImageByteBuffer source, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
+        Rectangle[] regions = splitRegion(source.getWidth(), source.getHeight(), 4, 1);
 
         boolean[][] peakList = new boolean[source.getHeight()][source.getWidth()];
 
-        PeakFindTRF[] trfs = new PeakFindTRF[numthreads];
-        for(int i=0;i<numthreads;i++)
+        PeakFindTRF[] trfs = new PeakFindTRF[4];
+        for(int i=0;i<4;i++)
         {
             trfs[i] = new PeakFindTRF(source, regions[i].x1, regions[i].y1, regions[i].x2, regions[i].y2, dirDataInput, peakLow, peakHigh, peakList);
         }
-
         runTRFs(trfs);
 
 
         Log.d("uct.snapvote", "Identified first peaks.");
+
+        joinPeaksByPotential(source, peakList);
+
+        Log.d("uct.snapvote", "Joined peaks by potential.");
+    }
+
+    private void joinPeaksByPotential(ImageByteBuffer source, boolean[][] peakList) {
 
         // Turn potential peaks that surround peaks into
         // peaks themselves. Repeat this process until no
@@ -357,33 +363,47 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                 }
             }
         }while(more);
+    }
 
+    private void runExpansionFilter(ImageByteBuffer source, ImageByteBuffer destination, BitSet visitpixels)
+    {
         // TODO: Move this into settings.
         final int MIN_EXPANSION = 0;
         final int MAX_EXPANSION = 5;
 
         // Clear out remaining potential peaks that have lost their potential ;(
-        for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++){
+        for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++)
+        {
 
             // Dilate each pixel. Dilation amount increases the nearer to the bottom of the image
             // you are. This is because depth of students is further away at the back.
             int expand = MIN_EXPANSION + (int) (((MAX_EXPANSION - MIN_EXPANSION) *  (y * 1.0 / source.getHeight())) + 0.5);
 
-            for(int x = expand; x < source.getWidth()-expand; x++){
-
-               boolean peak = source.get(x, y) == (byte) 255;
+            for(int x = expand; x < source.getWidth()-expand; x++)
+            {
+                boolean peak = source.get(x, y) == (byte) 255;
+                if(peak)
+                {
+                    visitpixels.set(y * source.getWidth() + x - expand, y * source.getWidth() + x + expand);
+                    destination.set(x, y, (byte) 60);
+                }
 
                 // Expand any peaks out by 1px to fill small gaps.
-                if(peak){
-                    for(int p = -expand; p < expand; p++){
+                if(peak)
+                {
+                    for(int p = -expand; p < expand; p++)
+                    {
                         visitpixels.set((y+p) * source.getWidth() + x - expand, (y+p) * source.getWidth() + x + expand);
-                        for(int q = -expand; q < expand; q++){
+                        for(int q = -expand; q < expand; q++)
+                        {
                             destination.set(x+q, y+p, (byte) 60);
                         }
                     }
                 }
+
             }
         }
+
     }
 
 
