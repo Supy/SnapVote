@@ -88,13 +88,12 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             peakFilter(buffer1, buffer3, cannyPeakLow, cannyPeakHigh);  // INPLACE on buffer1
 
             runExpansionFilter(buffer1, buffer2, visitedPixels);
-
+            //runErosionFilter(buffer1, buffer2, visitedPixels);
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
-            /*
+
             // == Garbage Collection
-            buffer1 = null;
-            buffer3 = null;
+            buffer1 = null; buffer3 = null;
             System.gc();
 
             // 4. == Blob Detection
@@ -106,7 +105,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer2);
             publishProgress("9", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
-            */
+
 
             // TODO: Remove the saving when not required
             // 6. == Create output bitmap
@@ -125,11 +124,8 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("1", "Saved.");
 
             // 6. Output Data
-
-            Random r = new Random();
             List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
 
-            /*
             processActivity.colourArray = new int[]{Color.BLACK, Color.RED, Color.GREEN, Color.BLUE};
 
             for(BlobDetectorFilter.Blob b : bdf.getBlobList()) {
@@ -140,7 +136,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                 int y2 = b.yMax;
                 detectedSquares.add(new DetectedSquare(x1, y1, x2, y2, c));
             }
-            */
+
             if(isCancelled()) throw new InterruptedException();
 
             // Write data to process activity and finish
@@ -369,7 +365,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
     {
         // TODO: Move this into settings.
         final int MIN_EXPANSION = 0;
-        final int MAX_EXPANSION = 5;
+        final int MAX_EXPANSION = 7;
 
         // Clear out remaining potential peaks that have lost their potential ;(
         for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++)
@@ -382,11 +378,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             for(int x = expand; x < source.getWidth()-expand; x++)
             {
                 boolean peak = source.get(x, y) == (byte) 255;
-                if(peak)
-                {
-                    visitpixels.set(y * source.getWidth() + x - expand, y * source.getWidth() + x + expand);
-                    destination.set(x, y, (byte) 60);
-                }
 
                 // Expand any peaks out by 1px to fill small gaps.
                 if(peak)
@@ -399,6 +390,43 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                             destination.set(x+q, y+p, (byte) 60);
                         }
                     }
+                }
+
+            }
+        }
+
+    }
+
+    private void runErosionFilter(ImageByteBuffer source, ImageByteBuffer destination, BitSet visitpixels)
+    {
+        // TODO: Move this into settings.
+        int MIN_EXPANSION = 0;
+        int MAX_EXPANSION = 1;
+
+        // Clear out remaining potential peaks that have lost their potential ;(
+        for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++)
+        {
+
+            // Dilate each pixel. Dilation amount increases the nearer to the bottom of the image
+            // you are. This is because depth of students is further away at the back.
+            int expand = MIN_EXPANSION + (int) (((MAX_EXPANSION - MIN_EXPANSION) *  (y * 1.0 / source.getHeight())) + 0.5);
+
+            for(int x = expand; x < source.getWidth()-expand; x++)
+            {
+                boolean filled = true;
+                for(int p = -expand; p < expand; p++)
+                {
+                    for(int q = -expand; q < expand; q++)
+                    {
+                        filled = filled && visitpixels.get((y+p) * source.getWidth() + (x+q) - expand);
+                    }
+                }
+
+                // Expand any peaks out by 1px to fill small gaps.
+                if(!filled)
+                {
+                    visitpixels.set(y * source.getWidth() + x - expand, false);
+                    destination.set(x, y, (byte) 0);
                 }
 
             }
