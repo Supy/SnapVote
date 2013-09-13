@@ -33,7 +33,7 @@ import uct.snapvote.util.SobelAngleClassifier;
 
 /**
  * Created by Ben on 8/4/13.
- *  
+ *
  */
 public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer> {
 
@@ -70,6 +70,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
             ImageByteBuffer buffer3 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
+
             // 1. == Gaussian blur (buffer1 = input, buffer2 = output)
             blur(buffer1, buffer2, gaussianBlurRadius);
             publishProgress("12", "Blurred: " + timer.toStringSplit()); timer.split();
@@ -80,14 +81,16 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             // 3. == Canny edge detection
             BitSet visitedPixels = new BitSet(buffer1.getHeight() * buffer1.getWidth());
-            buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
             // buffer1 = input, input direction data
             peakFilter(buffer1, buffer3, cannyPeakLow, cannyPeakHigh);  // INPLACE on buffer1
 
+
+            buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
             runExpansionFilter(buffer1, buffer2, visitedPixels);
-            //runErosionFilter(buffer1, buffer2, visitedPixels);
+
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
+
 
 
             // == Garbage Collection
@@ -103,7 +106,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer2);
             publishProgress("9", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
-
 
             // TODO: Remove the saving when not required
             // 6. == Create output bitmap
@@ -125,6 +127,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
 
             processActivity.colourArray = new int[]{Color.BLACK, Color.RED, Color.GREEN, Color.BLUE};
+
 
             for(Blob b : bdf.getBlobList()) {
                 int c = processActivity.colourArray[b.assignedColour];
@@ -362,8 +365,8 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
     private void runExpansionFilter(ImageByteBuffer source, ImageByteBuffer destination, BitSet visitpixels)
     {
         // TODO: Move this into settings.
-        final int MIN_EXPANSION = 0;
-        final int MAX_EXPANSION = 7;
+        final int MIN_EXPANSION = 1;
+        final int MAX_EXPANSION = 5;
 
         // Clear out remaining potential peaks that have lost their potential ;(
         for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++)
@@ -377,18 +380,19 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             {
                 boolean peak = source.get(x, y) == (byte) 255;
 
-                // Expand any peaks out by 1px to fill small gaps.
                 if(peak)
                 {
-                    for(int p = -expand; p < expand; p++)
+                    for(int p = -expand; p <= expand; p++)
                     {
                         visitpixels.set((y+p) * source.getWidth() + x - expand, (y+p) * source.getWidth() + x + expand);
-                        for(int q = -expand; q < expand; q++)
+                        for(int q = -expand; q <= expand; q++)
                         {
                             destination.set(x+q, y+p, (byte) 60);
                         }
                     }
                 }
+
+
 
             }
         }
@@ -398,8 +402,8 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
     private void runErosionFilter(ImageByteBuffer source, ImageByteBuffer destination, BitSet visitpixels)
     {
         // TODO: Move this into settings.
-        int MIN_EXPANSION = 0;
-        int MAX_EXPANSION = 1;
+        int MIN_EXPANSION = 1;
+        int MAX_EXPANSION = 2;
 
         // Clear out remaining potential peaks that have lost their potential ;(
         for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++)
@@ -409,22 +413,21 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             // you are. This is because depth of students is further away at the back.
             int expand = MIN_EXPANSION + (int) (((MAX_EXPANSION - MIN_EXPANSION) *  (y * 1.0 / source.getHeight())) + 0.5);
 
-            for(int x = expand; x < source.getWidth()-expand; x++)
+            for(int x = expand+1; x < source.getWidth()-expand-1; x++)
             {
                 boolean filled = true;
-                for(int p = -expand; p < expand; p++)
+                for(int p = -expand; p <= expand; p++)
                 {
-                    for(int q = -expand; q < expand; q++)
+                    for(int q = -expand; q <= expand; q++)
                     {
                         filled = filled && visitpixels.get((y+p) * source.getWidth() + (x+q) - expand);
                     }
                 }
 
                 // Expand any peaks out by 1px to fill small gaps.
-                if(!filled)
+                if(filled)
                 {
-                    visitpixels.set(y * source.getWidth() + x - expand, false);
-                    destination.set(x, y, (byte) 0);
+                    destination.set(x, y, (byte) 255);
                 }
 
             }

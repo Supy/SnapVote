@@ -12,7 +12,7 @@ public class BlobSampler {
 
     // % and hard value offsets for determining where to take colour samples.
     private static final short PIXEL_OFFSET = 3;
-    private static final double PERCENTAGE_OFFSET = 0.15;
+    private static final double PERCENTAGE_OFFSET = 0.45;
 
     public static class Sample implements Comparable<Sample>{
         public Blob parent;
