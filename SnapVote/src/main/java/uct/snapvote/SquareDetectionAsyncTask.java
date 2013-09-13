@@ -1,13 +1,10 @@
 package uct.snapvote;
 
-import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
-import android.graphics.Color;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -17,13 +14,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 
+import uct.snapvote.ImageBitBufferOps.BlobDetectorOp;
+import uct.snapvote.ImageBitBufferOps.DilationOp;
+import uct.snapvote.ImageBitBufferOps.StructuringElement;
 import uct.snapvote.filter.BlobDetectorFilter;
+import uct.snapvote.filter.ConvertToBitImageFilter;
 import uct.snapvote.filter.PeakFindTRF;
 import uct.snapvote.filter.GaussianTRF;
 import uct.snapvote.filter.SobelTRF;
@@ -81,39 +81,40 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("7", "Sobel Filter: " + timer.toStringSplit()); timer.split();
 
             // 3. == Canny edge detection
-            BitSet visitedPixels = new BitSet(buffer1.getHeight() * buffer1.getWidth());
-            buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
-
             // buffer1 = input, input direction data
             peakFilter(buffer1, buffer3, cannyPeakLow, cannyPeakHigh);  // INPLACE on buffer1
-
-            runExpansionFilter(buffer1, buffer2, visitedPixels);
-
+            ImageBitBuffer bitimage1 = convertPeaksToBitSet(buffer1);
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
-            /*
             // == Garbage Collection
             buffer1 = null;
             buffer3 = null;
             System.gc();
 
-            // 4. == Blob Detection
-            BlobDetectorFilter bdf = new BlobDetectorFilter(buffer2, visitedPixels, buffer2.getWidth(), buffer2.getHeight());
-            bdf.run();
-            publishProgress("39", "Blob Detect: " + timer.toStringSplit());timer.split();
+            ImageBitBuffer bitimage2 = new ImageBitBuffer(bitimage1.getWidth(), bitimage1.getHeight());
 
-            // 5. == Blob Filtering
+            // 4. == Erosion and Dilation
+            // 4.1 Dilate everything by 2 pixels to solve most little issues
+            DilationOp df = new DilationOp(bitimage1, bitimage2, 2, 10, 10, bitimage1.getWidth()-10, bitimage1.getHeight()-10);
+            df.run();
+
+
+            // 5. == Blob Detection
+            BlobDetectorOp bdf = new BlobDetectorOp(bitimage2, bitimage2.getWidth(), bitimage2.getHeight(), buffer2);
+            bdf.run();
+            publishProgress("39", "Blob Detect: " + timer.toStringSplit()); timer.split();
+
+            // 6. == Blob Filtering
             ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer2);
             publishProgress("9", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
-            */
 
             // TODO: Remove the saving when not required
-            // 6. == Create output bitmap
+            // 7. == Create output bitmap
             Bitmap testImage = buffer2.createBitmap();
             publishProgress("1", "Created Bitmap");
 
-            // 7. == Save to sdcard0/Pictures
+            // 8. == Save to sdcard0/Pictures
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             testImage.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
             File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
@@ -347,8 +348,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                         for(int p = -1; p < 1; p++){
                             for(int q = -1; q < 1; q++){
 
-                                if(q == 0 && p == 0)
-                                    continue;
+                                if(q == 0 && p == 0) continue;
 
                                 byte neighbour = source.get(x+p, y+q);
 
@@ -365,11 +365,33 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         }while(more);
     }
 
+    private ImageBitBuffer convertPeaksToBitSet(ImageByteBuffer source)
+    {
+        ImageBitBuffer bitimage = new ImageBitBuffer(source.getWidth(), source.getHeight());
+
+        Rectangle[] regions = splitRegion(source.getWidth(), source.getHeight(), 4, 1);
+
+        ConvertToBitImageFilter[] trfs = new ConvertToBitImageFilter[4];
+        for(int i=0;i<4;i++)
+        {
+            trfs[i] = new ConvertToBitImageFilter(source, bitimage, regions[i].x1, regions[i].y1, regions[i].x2, regions[i].y2);
+        }
+        runTRFs(trfs);
+
+        return bitimage;
+    }
+
+
+
+
+
+
+
     private void runExpansionFilter(ImageByteBuffer source, ImageByteBuffer destination, BitSet visitpixels)
     {
         // TODO: Move this into settings.
         final int MIN_EXPANSION = 0;
-        final int MAX_EXPANSION = 5;
+        final int MAX_EXPANSION = 8;
 
         // Clear out remaining potential peaks that have lost their potential ;(
         for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++)
@@ -377,7 +399,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             // Dilate each pixel. Dilation amount increases the nearer to the bottom of the image
             // you are. This is because depth of students is further away at the back.
-            int expand = MIN_EXPANSION + (int) (((MAX_EXPANSION - MIN_EXPANSION) *  (y * 1.0 / source.getHeight())) + 0.5);
+            int expand = (int) (((MAX_EXPANSION) * (y * 1.0 / source.getHeight())) + 0.5);
 
             for(int x = expand; x < source.getWidth()-expand; x++)
             {

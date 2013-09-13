@@ -1,4 +1,4 @@
-package uct.snapvote.filter;
+package uct.snapvote.ImageBitBufferOps;
 
 import android.util.Log;
 
@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import uct.snapvote.ImageBitBuffer;
 import uct.snapvote.ImageByteBuffer;
+import uct.snapvote.filter.BaseRegionFilter;
 import uct.snapvote.util.Blob;
 import uct.snapvote.util.BlobSampler;
 import uct.snapvote.util.IntQueue;
@@ -14,20 +16,21 @@ import uct.snapvote.util.IntQueue;
 /**
  * Created by Justin on 2013/08/11.
  */
-public class BlobDetectorFilter extends BaseRegionFilter {
+public class BlobDetectorOp extends BaseRegionOp {
 
-    private BitSet visitedPixels;
     private int width;
     private int height;
     private List<Blob> blobs;
+    private ImageByteBuffer outCanvas;
 
-    public BlobDetectorFilter(ImageByteBuffer source, BitSet pixelBitset, int width, int height){
+    public BlobDetectorOp(ImageBitBuffer source, int width, int height, ImageByteBuffer outCanvas){
         super(source, null);
-        this.visitedPixels = pixelBitset;
         this.width = width;
         this.height = height;
         this.blobs = new ArrayList<Blob>();
+        this.outCanvas = outCanvas;
     }
+
 
 
     @Override
@@ -38,14 +41,13 @@ public class BlobDetectorFilter extends BaseRegionFilter {
         {
             for(int x=1;x< width-1;x++)
             {
-                int pixelIndex = y * width + x;
 
                 // if not a peak and not visited already
-                if (!visitedPixels.get(pixelIndex))
+                if (!source.get(x,y))
                 {
                     // mark as visited
-                    visitedPixels.set(pixelIndex);
-                    pixelQueue.add(pixelIndex);
+                    source.set(x, y);
+                    pixelQueue.add(y*width + x);
 
                     int queuePixelIndex;
                     Blob blob = new Blob();
@@ -62,36 +64,35 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                         int southIndex = queuePixelIndex + width;
                         int eastIndex = queuePixelIndex + 1;
                         int westIndex = queuePixelIndex - 1;
-                        boolean north = (currentY > 0) ? visitedPixels.get(northIndex) : true;
-                        boolean south = (currentY < height-1) ? visitedPixels.get(southIndex) : true;
-                        boolean east = (currentX < width-1) ? visitedPixels.get(eastIndex) : true;
-                        boolean west = (currentX > 0) ? visitedPixels.get(westIndex) : true;
+                        boolean north = (currentY > 0) ? source.get(currentX, currentY-1) : true;
+                        boolean south = (currentY < height-1) ? source.get(currentX, currentY+1) : true;
+                        boolean east = (currentX < width-1) ? source.get(currentX+1, currentY) : true;
+                        boolean west = (currentX > 0) ? source.get(currentX-1, currentY) : true;
     
                         if(!north){
                             pixelQueue.add(northIndex);
-                            visitedPixels.set(northIndex);
+                            source.set(currentX, currentY-1);
                         }
                         
                         if(!south){
                             pixelQueue.add(southIndex);
-                            visitedPixels.set(southIndex);
+                            source.set(currentX, currentY+1);
                         }
     
                         if(!east){
                             pixelQueue.add(eastIndex);
-                            visitedPixels.set(eastIndex);
+                            source.set(currentX+1, currentY);
                         }
     
                         if(!west){
                             pixelQueue.add(westIndex);
-                            visitedPixels.set(westIndex);
+                            source.set(currentX-1, currentY);
                         }
 
-                        blob.addPixel(queuePixelIndex % width, queuePixelIndex / width);
+                        blob.addPixel(currentX, currentY);
                     }
                     
-                    if(blob.valid())
-                        blobs.add(blob);
+                    if(blob.valid()) blobs.add(blob);
 
 
                 }
@@ -106,14 +107,14 @@ public class BlobDetectorFilter extends BaseRegionFilter {
         {
             for(int y=b.yMin;y< b.yMax;y++)
             {
-                source.set(b.xMin,y,(byte)255);
-                source.set(b.xMax,y,(byte)255);
+                outCanvas.set(b.xMin,y,(byte)255);
+                outCanvas.set(b.xMax,y,(byte)255);
 
                 if( y ==b.yMin  || y == (b.yMax-1))
                 {
                     for(int x=b.xMin;x< b.xMax;x++)
                     {
-                        source.set(x,y,(byte)255);
+                        outCanvas.set(x,y,(byte)255);
                     }
                 }
             }
