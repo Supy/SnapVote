@@ -9,10 +9,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,6 +57,7 @@ public class ResultActivity extends Activity {
         List<DetectedSquare> detectedSquareList = DetectedSquareListSerialiser.Deserialise(serialisedSquares);
 
         // == Group into colour groups
+        // TODO: once we're finished, we can just keep colour tallies. No need for these objects for use in the thumbnail.
         colourGroups = new HashMap<Integer, List<DetectedSquare>>();
         for(DetectedSquare s : detectedSquareList) {
             int c = s.Colour();
@@ -103,8 +108,9 @@ public class ResultActivity extends Activity {
         }
 
         iOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-        int inSampleSize = 1;
+        int inSampleSize = 4;
 
+/*
         if (imageHeight > iv.getHeight()) {
             inSampleSize = Math.round((float)imageHeight / (float)200);
         }
@@ -115,6 +121,7 @@ public class ResultActivity extends Activity {
             //if(Math.round((float)width / (float)reqWidth) > inSampleSize) // If bigger SampSize..
             inSampleSize = Math.round((float)imageWidth / (float)400);
         }
+        */
 
 
         iOptions.inSampleSize = inSampleSize;
@@ -151,6 +158,17 @@ public class ResultActivity extends Activity {
             }
         }
 
+        // 7. == Save to sdcard0/Pictures
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bmcpy.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File f = new File(path, "test-results.jpg");
+        try{
+            f.createNewFile();
+            FileOutputStream fo = new FileOutputStream(f);
+            fo.write(bytes.toByteArray());
+            fo.close();
+        }catch(Exception e){}
 
         iv.setImageBitmap(bmcpy);
 

@@ -129,13 +129,10 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             processActivity.colourArray = new int[]{Color.BLACK, Color.RED, Color.GREEN, Color.BLUE};
 
 
+            // Convert blobs to coloured squares that will be
             for(Blob b : bdf.getBlobList()) {
                 int c = processActivity.colourArray[b.assignedColour];
-                int x1 = b.xMin;
-                int y1 = b.yMin;
-                int x2 = b.xMax;
-                int y2 = b.yMax;
-                detectedSquares.add(new DetectedSquare(x1, y1, x2, y2, c));
+                detectedSquares.add( new DetectedSquare(b.xMin, b.yMin, b.xMax, b.yMax, c) );
             }
 
             if(isCancelled()) throw new InterruptedException();
@@ -344,6 +341,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                         for(int p = -1; p < 1; p++){
                             for(int q = -1; q < 1; q++){
 
+                                // Don't mark original peak as peak again
                                 if(q == 0 && p == 0)
                                     continue;
 
