@@ -125,7 +125,7 @@ public class ValidVoteFilter{
 
                 // TODO: Need to adjust these values to get the best combinations.
                 if(sample.insideSample){
-                    if(v <= 45 && s < 12){
+                    if((s <= 25 && v <= 50) || (s <= 55 && v <= 25)){
                         numBlack++;
                     }else if(s >= 22){     // Less than this and we have grey. We don't want grey.
                         // Colours
