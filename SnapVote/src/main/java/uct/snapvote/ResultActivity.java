@@ -1,23 +1,23 @@
 package uct.snapvote;
 
 import android.app.Activity;
-import android.content.ContentResolver;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.MotionEvent;
-import android.widget.ImageView;
+import android.text.Editable;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +26,7 @@ import java.util.Map;
 import uct.snapvote.components.BarGraph;
 import uct.snapvote.util.DetectedSquare;
 import uct.snapvote.util.DetectedSquareListSerialiser;
+import uct.snapvote.util.ImageInputStream;
 
 /**
  * Created by Ben on 2013/09/03.
@@ -45,8 +46,8 @@ public class ResultActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
-        // == Assign components
         barGraph = (BarGraph) findViewById(R.id.results_bargraph);
+        Button btnSave = (Button) findViewById(R.id.btnSave);
 
         // == Extract Extras
         imageUri = getIntent().getStringExtra("ImageUri");
@@ -75,107 +76,92 @@ public class ResultActivity extends Activity {
             barGraph.addBar(group.getValue().size(), Integer.toHexString(group.getKey()), group.getKey());
         }
 
-        ImageView mImage = (ImageView) findViewById(R.id.results_imageview);
+        // TODO: this can be removed after we're done
+        saveOverlayImage();
 
-        loadThumbnail(mImage, imageUri);
-
+        // Setup prompt for poll title
+        final EditText inPollTitle = new EditText(ResultActivity.this);
+        btnSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new AlertDialog.Builder(ResultActivity.this)
+                        .setTitle("Save poll results")
+                        .setMessage("Please enter a title for this poll")
+                        .setView(inPollTitle)
+                        .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                String title = inPollTitle.getText().toString();
+                                savePoll(title);
+                            }
+                        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        // Do nothing.
+                    }
+                }).show();
+            }
+        });
+        // --- End prompt setup
     }
 
+    private void savePoll(String pollTitle){
+        // TODO: Convert colourGroup map to a map of colour-count and save.
+    }
 
-    private void loadThumbnail(ImageView iv, String uri) {
-
-        Uri contentURI = Uri.parse(uri);
-        ContentResolver cr = getContentResolver();
-
-        InputStream in = null;
+    private void saveOverlayImage() {
         try {
-            in = cr.openInputStream(contentURI);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+            ImageInputStream imageInputStream = new ImageInputStream(imageUri, this.getContentResolver());
 
-        // read image attributes
-        BitmapFactory.Options iOptions = new BitmapFactory.Options();
-        iOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(in,null,iOptions);
-        int imageHeight = iOptions.outHeight;
-        int imageWidth = iOptions.outWidth;
+            int imageHeight = imageInputStream.height;
+            int imageWidth = imageInputStream.width;
 
-        try {
-            in = cr.openInputStream(contentURI);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+            // read image attributes
+            BitmapFactory.Options iOptions = new BitmapFactory.Options();
+            iOptions.inJustDecodeBounds = true;
+            iOptions.inPreferredConfig = Bitmap.Config.RGB_565;
+            iOptions.inSampleSize = 4;
 
-        iOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-        int inSampleSize = 4;
+            Bitmap bm = BitmapFactory.decodeStream(imageInputStream.getInputStream(), null, iOptions);
 
-/*
-        if (imageHeight > iv.getHeight()) {
-            inSampleSize = Math.round((float)imageHeight / (float)200);
-        }
+            android.graphics.Bitmap.Config bitmapConfig = bm.getConfig();
+            Bitmap bmcpy = bm.copy(bitmapConfig, true);
 
-        int expectedWidth = imageWidth / inSampleSize;
+            Canvas canvas = new Canvas(bmcpy);
 
-        if (expectedWidth > iv.getWidth()) {
-            //if(Math.round((float)width / (float)reqWidth) > inSampleSize) // If bigger SampSize..
-            inSampleSize = Math.round((float)imageWidth / (float)400);
-        }
-        */
+            Paint p = new Paint();
+            p.setStyle(Paint.Style.FILL);
 
+            float divx = (float)bm.getWidth() / imageWidth;
+            float divy = (float)bm.getHeight() / imageHeight;
 
-        iOptions.inSampleSize = inSampleSize;
+            for(List<DetectedSquare> group : colourGroups.values()) {
+                for(DetectedSquare square : group) {
 
-        // Decode bitmap with inSampleSize set
-        iOptions.inJustDecodeBounds = false;
+                    p.setColor(square.Colour());
 
-        Bitmap bm = BitmapFactory.decodeStream(in, null, iOptions);
+                    int x = (int)(divx * square.Left());
+                    int y = (int)(divy * square.Top());
 
-        android.graphics.Bitmap.Config bitmapConfig = bm.getConfig();
-        Bitmap bmcpy = bm.copy(bitmapConfig, true);
+                    int x2 = (int)(divx * square.Right())+1;
+                    int y2 = (int)(divy * square.Bottom())+1;
 
-        Canvas canvas = new Canvas(bmcpy);
+                    canvas.drawRect(x,y,x2,y2,p);
 
-        Paint p = new Paint();
-        p.setStyle(Paint.Style.FILL);
-
-        float divx = (float)bm.getWidth() / imageWidth;
-        float divy = (float)bm.getHeight() / imageHeight;
-
-        for(List<DetectedSquare> group : colourGroups.values()) {
-            for(DetectedSquare square : group) {
-
-                p.setColor(square.Colour());
-
-                int x = (int)(divx * square.Left());
-                int y = (int)(divy * square.Top());
-
-                int x2 = (int)(divx * square.Right())+1;
-                int y2 = (int)(divy * square.Bottom())+1;
-
-                canvas.drawRect(x,y,x2,y2,p);
-
+                }
             }
-        }
 
-        // 7. == Save to sdcard0/Pictures
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        bmcpy.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
-        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File f = new File(path, "test-results.jpg");
-        try{
+            // 7. == Save to sdcard0/Pictures
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            bmcpy.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
+            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File f = new File(path, "test-results.jpg");
+
             f.createNewFile();
             FileOutputStream fo = new FileOutputStream(f);
             fo.write(bytes.toByteArray());
             fo.close();
-        }catch(Exception e){}
 
-        iv.setImageBitmap(bmcpy);
-
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
-
-
-
-
 }
