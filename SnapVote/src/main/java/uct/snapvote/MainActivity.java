@@ -16,6 +16,15 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+import java.util.Vector;
+
+import uct.snapvote.util.PollManager;
+
 public class MainActivity extends Activity {
 
     private static final int CAMERA_IMAGE_REQUEST_CODE = 101;
@@ -23,6 +32,7 @@ public class MainActivity extends Activity {
 
     private ListView listPreviousPolls;
     private Button btnNewPoll;
+    private JSONArray previousPolls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,19 +42,24 @@ public class MainActivity extends Activity {
         listPreviousPolls = (ListView) findViewById(R.id.listPreviousPolls);
         btnNewPoll = (Button) findViewById(R.id.btnNewPoll);
 
-
-        // Setup the previous polls list
-        String[] values = new String[] {"How many toes?", "Best path-finding algorithm?"};
+        previousPolls = PollManager.getAllPolls(MainActivity.this);
+        List<String> titles = new Vector<String>(previousPolls.length());
+        for(int i=0; i < previousPolls.length(); i++){
+            try{
+                JSONObject poll = previousPolls.getJSONObject(i);
+                titles.add(poll.getString("title"));
+            }catch (Exception e){}
+        }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_2, android.R.id.text1, values);
+                android.R.layout.simple_list_item_2, android.R.id.text1, titles.toArray( new String[titles.size()] ));
 
 
         listPreviousPolls.setAdapter(adapter);
         listPreviousPolls.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast.makeText(getApplicationContext(), "Clicked.", Toast.LENGTH_SHORT).show();
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long id) {
+                launchResultsScreen(id);
             }
         });
 
@@ -113,7 +128,6 @@ public class MainActivity extends Activity {
 
     private void launchCamera(){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        //intent.putExtra(MediaStore.EXTRA_OUTPUT, getDestinationFilePath());
         startActivityForResult(intent, CAMERA_IMAGE_REQUEST_CODE);
     }
 
@@ -123,6 +137,15 @@ public class MainActivity extends Activity {
         startActivityForResult(intent, GALLERY_IMAGE_REQUEST_CODE);
     }
 
-
+    private void launchResultsScreen(long id) {
+        try{
+            JSONObject poll = previousPolls.getJSONObject((int) id);
+            Intent intent = new Intent(MainActivity.this, ResultActivity.class);
+            intent.putExtra("PollResult", poll.toString());
+            startActivity(intent);
+        }catch(JSONException e){
+            Log.e("uct.snapvote", "Could not launch result screen for selected poll.");
+        }
+    }
 
 }

@@ -3,30 +3,21 @@ package uct.snapvote;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.LightingColorFilter;
 import android.os.Bundle;
-import android.os.Environment;
-import android.text.Editable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import uct.snapvote.components.BarGraph;
-import uct.snapvote.util.DetectedSquare;
-import uct.snapvote.util.DetectedSquareListSerialiser;
-import uct.snapvote.util.ImageInputStream;
 import uct.snapvote.util.PollManager;
 
 /**
@@ -34,13 +25,10 @@ import uct.snapvote.util.PollManager;
  */
 public class ResultActivity extends Activity {
 
-    // Extra's data
-    String imageUri;
-    int[] colourArray;
-    HashMap<Integer, List<DetectedSquare>> colourGroups;
-
     // Components
     BarGraph barGraph;
+    Button btnSave;
+    JSONObject poll;
 
 
     public void onCreate(Bundle savedInstanceState) {
@@ -48,38 +36,51 @@ public class ResultActivity extends Activity {
         setContentView(R.layout.activity_result);
 
         barGraph = (BarGraph) findViewById(R.id.results_bargraph);
-        Button btnSave = (Button) findViewById(R.id.btnSave);
+        btnSave = (Button) findViewById(R.id.btnSave);
+        TextView txtTitle = (TextView) findViewById(R.id.txtTitle);
 
-        // == Extract Extras
-        imageUri = getIntent().getStringExtra("ImageUri");
-        colourArray = getIntent().getIntArrayExtra("ColourArray");
+        String pollData = getIntent().getStringExtra("PollResult");
+        try{
+            poll = new JSONObject(pollData);
+            drawGraph();
+        }catch(JSONException e){
+            Log.e("uct.snapvote", "Error parsing poll data: "+pollData);
+        }
 
-        int[] serialisedSquares = getIntent().getIntArrayExtra("SquareList");
+        // Disable save button if this isn't a new poll to prevent saving duplicate poll
+        if(!getIntent().hasExtra("FlagNewPoll")){
+            btnSave.setEnabled(false);
+            btnSave.setClickable(false);
+            btnSave.setText("Poll already saved.");
+            btnSave.getBackground().setColorFilter(new LightingColorFilter(Color.GRAY, Color.DKGRAY));
 
-        List<DetectedSquare> detectedSquareList = DetectedSquareListSerialiser.Deserialise(serialisedSquares);
+            // Set correct poll title if it's been saved before
+            String text = poll.optString("title", "Untitled poll");
+            txtTitle.setText(text);
+        }else
+            setupSaveButton();
 
-        // == Group into colour groups
-        // TODO: once we're finished, we can just keep colour tallies. No need for these objects for use in the thumbnail.
-        colourGroups = new HashMap<Integer, List<DetectedSquare>>();
-        for(DetectedSquare s : detectedSquareList) {
-            int c = s.Colour();
+    }
 
-            if(!colourGroups.containsKey(c)) {
-                colourGroups.put(c, new ArrayList<DetectedSquare>());
+    // Takes in a poll result in the form of a JSONObject and draws the graph for it.
+    private void drawGraph() {
+        try{
+            JSONArray results = poll.getJSONArray("results");
+            for(int i=0; i < results.length(); i++){
+                JSONArray result = results.getJSONArray(i);
+                int colour = result.getInt(0);
+                int count = result.getInt(1);
+
+                barGraph.addBar(count, Integer.toHexString(colour), colour);
             }
+        }catch(JSONException e){}
+    }
 
-            colourGroups.get(c).add(s);
-        }
+    private void savePoll(String pollTitle){
+        PollManager.saveResult(pollTitle, poll, ResultActivity.this);
+    }
 
-        // == Render bars
-
-        for(Map.Entry<Integer, List<DetectedSquare>> group: colourGroups.entrySet()) {
-            barGraph.addBar(group.getValue().size(), Integer.toHexString(group.getKey()), group.getKey());
-        }
-
-        // TODO: this can be removed after we're done
-        saveOverlayImage();
-
+    private void setupSaveButton() {
         // Setup prompt for poll title
         final EditText inPollTitle = new EditText(ResultActivity.this);
         btnSave.setOnClickListener(new View.OnClickListener() {
@@ -92,7 +93,11 @@ public class ResultActivity extends Activity {
                         .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
                                 String title = inPollTitle.getText().toString();
+
+                                // Save the current poll and go back to the main screen
                                 savePoll(title);
+                                Intent intent = new Intent(ResultActivity.this, MainActivity.class);
+                                startActivity(intent);
                             }
                         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
@@ -102,74 +107,5 @@ public class ResultActivity extends Activity {
             }
         });
         // --- End prompt setup
-    }
-
-    private void savePoll(String pollTitle){
-        // TODO: Convert colourGroup map to a map of colour-count and save.
-        Map<Integer, Integer> results = new HashMap<Integer, Integer>();
-        for(Map.Entry<Integer, List<DetectedSquare>> result : colourGroups.entrySet()){
-            results.put(result.getKey(), result.getValue().size());
-        }
-
-        PollManager.saveResult(pollTitle, results, ResultActivity.this);
-    }
-
-    private void saveOverlayImage() {
-        try {
-            ImageInputStream imageInputStream = new ImageInputStream(imageUri, this.getContentResolver());
-
-            int imageHeight = imageInputStream.height;
-            int imageWidth = imageInputStream.width;
-
-            // read image attributes
-            BitmapFactory.Options iOptions = new BitmapFactory.Options();
-            iOptions.inJustDecodeBounds = true;
-            iOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-            iOptions.inSampleSize = 4;
-
-            Bitmap bm = BitmapFactory.decodeStream(imageInputStream.getInputStream(), null, iOptions);
-
-            android.graphics.Bitmap.Config bitmapConfig = bm.getConfig();
-            Bitmap bmcpy = bm.copy(bitmapConfig, true);
-
-            Canvas canvas = new Canvas(bmcpy);
-
-            Paint p = new Paint();
-            p.setStyle(Paint.Style.FILL);
-
-            float divx = (float)bm.getWidth() / imageWidth;
-            float divy = (float)bm.getHeight() / imageHeight;
-
-            for(List<DetectedSquare> group : colourGroups.values()) {
-                for(DetectedSquare square : group) {
-
-                    p.setColor(square.Colour());
-
-                    int x = (int)(divx * square.Left());
-                    int y = (int)(divy * square.Top());
-
-                    int x2 = (int)(divx * square.Right())+1;
-                    int y2 = (int)(divy * square.Bottom())+1;
-
-                    canvas.drawRect(x,y,x2,y2,p);
-
-                }
-            }
-
-            // 7. == Save to sdcard0/Pictures
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            bmcpy.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
-            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            File f = new File(path, "test-results.jpg");
-
-            f.createNewFile();
-            FileOutputStream fo = new FileOutputStream(f);
-            fo.write(bytes.toByteArray());
-            fo.close();
-
-        }catch (Exception e) {
-            e.printStackTrace();
-            Log.d("uct.snapvote", "Could not save overlay image.");
-        }
     }
 }
