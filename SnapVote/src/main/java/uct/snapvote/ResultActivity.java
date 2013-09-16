@@ -27,6 +27,7 @@ import uct.snapvote.components.BarGraph;
 import uct.snapvote.util.DetectedSquare;
 import uct.snapvote.util.DetectedSquareListSerialiser;
 import uct.snapvote.util.ImageInputStream;
+import uct.snapvote.util.PollManager;
 
 /**
  * Created by Ben on 2013/09/03.
@@ -105,6 +106,12 @@ public class ResultActivity extends Activity {
 
     private void savePoll(String pollTitle){
         // TODO: Convert colourGroup map to a map of colour-count and save.
+        Map<Integer, Integer> results = new HashMap<Integer, Integer>();
+        for(Map.Entry<Integer, List<DetectedSquare>> result : colourGroups.entrySet()){
+            results.put(result.getKey(), result.getValue().size());
+        }
+
+        PollManager.saveResult(pollTitle, results, ResultActivity.this);
     }
 
     private void saveOverlayImage() {
@@ -162,6 +169,7 @@ public class ResultActivity extends Activity {
 
         }catch (Exception e) {
             e.printStackTrace();
+            Log.d("uct.snapvote", "Could not save overlay image.");
         }
     }
 }

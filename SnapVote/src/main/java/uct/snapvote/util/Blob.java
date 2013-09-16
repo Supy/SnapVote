@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Blob {
-    public static final int MIN_MASS = 35;
-    public static final double MAX_RATIO = 2.0;
+    public static final int MIN_MASS = 44;
+    public static final double MAX_RATIO = 1.65;
     public static final double MIN_AREA = 0.35;
     public int xMin = Integer.MAX_VALUE;
     public int xMax;

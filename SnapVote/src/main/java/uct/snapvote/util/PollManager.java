@@ -2,6 +2,7 @@ package uct.snapvote.util;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,6 +39,8 @@ public class PollManager {
             entry.put("results", results);
 
             writeData(entry.toString(), a);
+
+            Log.d("uct.snapvote", "New poll result saved.");
         }catch(JSONException e){
             e.printStackTrace();
         }
@@ -70,6 +73,8 @@ public class PollManager {
                 entries.put(new JSONObject(str));
             }
             isr.close () ;
+
+            Log.d("uct.snapvote", "Read "+entries.length()+" poll results from file.");
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -156,8 +156,8 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(processActivity);
 
         gaussianBlurRadius = Integer.parseInt(mySharedPreferences.getString("gaussian_blur_radius", "2"));
-        cannyPeakLow = Integer.parseInt(mySharedPreferences.getString("canny_peak_low", "70"));
-        cannyPeakHigh = Integer.parseInt(mySharedPreferences.getString("canny_peak_high", "150"));
+        cannyPeakLow = Integer.parseInt(mySharedPreferences.getString("canny_peak_low", "50"));
+        cannyPeakHigh = Integer.parseInt(mySharedPreferences.getString("canny_peak_high", "100"));
     }
 
     /* readGrayscale
@@ -364,7 +364,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
     {
         // TODO: Move this into settings.
         final int MIN_EXPANSION = 1;
-        final int MAX_EXPANSION = 5;
+        final int MAX_EXPANSION = 3;
 
         // Clear out remaining potential peaks that have lost their potential ;(
         for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++)
