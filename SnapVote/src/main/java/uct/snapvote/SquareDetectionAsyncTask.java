@@ -155,7 +155,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
     private void loadPreferences(){
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(processActivity);
 
-        gaussianBlurRadius = Integer.parseInt(mySharedPreferences.getString("gaussian_blur_radius", "2"));
+        gaussianBlurRadius = Integer.parseInt(mySharedPreferences.getString("gaussian_blur_radius", "3"));
         cannyPeakLow = Integer.parseInt(mySharedPreferences.getString("canny_peak_low", "50"));
         cannyPeakHigh = Integer.parseInt(mySharedPreferences.getString("canny_peak_high", "100"));
     }

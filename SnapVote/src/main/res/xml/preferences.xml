@@ -20,7 +20,7 @@
                 android:key="canny_peak_low"
                 android:title="Low peak threshold"
                 android:summary="Low value for edges to be possible peaks."
-                android:defaultValue="60"
+                android:defaultValue="50"
                 android:inputType="number"
                 android:dialogTitle="Low peak threshold" />
 
@@ -28,7 +28,7 @@
                 android:key="canny_peak_high"
                 android:title="High peak threshold"
                 android:summary="High value for edges to be definite peaks."
-                android:defaultValue="150"
+                android:defaultValue="100"
                 android:inputType="number"
                 android:dialogTitle="High peak threshold" />
     </PreferenceCategory>
