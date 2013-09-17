@@ -13,7 +13,7 @@ public class Blob {
     public int yMax;
     public int mass;
     public List<BlobSampler.Sample> samples;
-    public byte assignedColour;
+    public int assignedColour;
 
     public void addPixel(int pixelX, int pixelY) {
         if (pixelX < xMin)

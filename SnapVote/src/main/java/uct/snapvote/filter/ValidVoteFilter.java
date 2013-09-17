@@ -155,19 +155,20 @@ public class ValidVoteFilter{
             // AND
             //  - to be classified as a colour, the average of all samples taken inside the blob must fall within range
 
+
             // Colours
             if(numWhitesOutside >= 2){
                 if((h <= 20 || h >= 340) && s >= 50 && v >= 63){
-                    blob.assignedColour = 1;
+                    blob.assignedColour = Color.RED;
                     reds++;
                 }else if(h >= 100 && h <= 164 && s >= 20){
-                    blob.assignedColour = 2;
+                    blob.assignedColour = Color.GREEN;
                     greens++;
                 }else if(h >= 210 && h < 270 && s >= 55){
-                    blob.assignedColour = 3;
+                    blob.assignedColour = Color.BLUE;
                     blues++;
                 }else if(s <= 25 && v <= 40){
-                    blob.assignedColour = 0;
+                    blob.assignedColour = Color.BLACK;
                     blacks++;
                 }else{
                     blobList.remove(i);

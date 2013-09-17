@@ -135,13 +135,9 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             // 6. Output Data
             List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
 
-            processActivity.colourArray = new int[]{Color.BLACK, Color.RED, Color.GREEN, Color.BLUE};
-
-
             // Convert blobs to coloured squares that will be
             for(Blob b : bdf.getBlobList()) {
-                int c = processActivity.colourArray[b.assignedColour];
-                detectedSquares.add( new DetectedSquare(b.xMin, b.yMin, b.xMax, b.yMax, c) );
+                detectedSquares.add( new DetectedSquare(b.xMin, b.yMin, b.xMax, b.yMax, b.assignedColour) );
             }
 
             if(isCancelled()) throw new InterruptedException();

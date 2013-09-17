@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,12 +115,21 @@ public class ProcessActivity extends Activity {
 
         // Generate tallies for each colour
         HashMap<Integer, Integer> colourCounts = new HashMap<Integer, Integer>();
+
+        Log.d("uct.snapvote", "colours");
+        // first add all the expected colours
+        for(int i=0;i<colourArray.length;i++)
+        {
+            Log.d("uct.snapvote", ""+i+ "" + colourArray[i]);
+            colourCounts.put(colourArray[i], 0);
+        }
+
+        // now add all the detected squares to the hashmap
+        // ONLY add them, if that colour is expected
         for(DetectedSquare s : squareList) {
             int c = s.Colour();
 
-            if(!colourCounts.containsKey(c)) {
-                colourCounts.put(c, 1);
-            }else{
+            if(colourCounts.containsKey(c)) {
                 colourCounts.put(c, colourCounts.get(c)+1);
             }
         }
@@ -129,12 +139,15 @@ public class ProcessActivity extends Activity {
         try{
             JSONArray results = new JSONArray();
             for(Map.Entry<Integer, Integer> entry : colourCounts.entrySet()){
-                JSONArray r = new JSONArray();
-                r.put(entry.getKey());
-                r.put(entry.getValue());
+                JSONObject r = new JSONObject();
+                r.put("colour" , entry.getKey());
+                r.put("count", entry.getValue());
                 results.put(r);
             }
             pollResult.put("results", results);
+
+            pollResult.put("date", new Date().toString());
+
         }catch(JSONException e){
             Log.e("uct.snapvote", "Failed to encode poll result to JSON.");
         }

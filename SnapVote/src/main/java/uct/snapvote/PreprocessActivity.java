@@ -14,15 +14,23 @@ import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PreprocessActivity extends Activity {
 
     String uristr;
     Button btnProcess;
+
+    CheckBox btnRed;
+    CheckBox btnGreen;
+    CheckBox btnBlue;
+    CheckBox btnBlack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +52,11 @@ public class PreprocessActivity extends Activity {
             }
         });
 
+        btnRed = (CheckBox) findViewById(R.id.chkRedChoice);
+        btnGreen = (CheckBox) findViewById(R.id.chkGreenChoice);
+        btnBlue = (CheckBox) findViewById(R.id.chkBlueChoice);
+        btnBlack = (CheckBox) findViewById(R.id.chkBlackChoice);
+
         //load up thumbnail - TODO: move to an asynx task to remove awkward lag
         loadThumbnail(uristr);
     }
@@ -52,8 +65,19 @@ public class PreprocessActivity extends Activity {
         Intent intent = new Intent(this, ProcessActivity.class);
 
         intent.putExtra("ImageUri", uristr);
-        // TODO setup proper colours here as integers
-        intent.putExtra("ColourArray", new int[]{ Color.BLUE });
+
+        List<Integer> selectedColours = new ArrayList<Integer>();
+        if (btnRed.isChecked()) selectedColours.add(Color.RED);
+        if (btnBlack.isChecked()) selectedColours.add(Color.BLACK);
+        if (btnGreen.isChecked()) selectedColours.add(Color.GREEN);
+        if (btnBlue.isChecked()) selectedColours.add(Color.BLUE);
+
+        int[] asInts = new int[selectedColours.size()];
+        for(int i=0;i<asInts.length;i++) asInts[i] = selectedColours.get(i);
+
+        Log.d("uct.snapvote", "selected colours: " + asInts.length);
+
+        intent.putExtra("ColourArray", asInts);
 
         startActivity(intent);
     }

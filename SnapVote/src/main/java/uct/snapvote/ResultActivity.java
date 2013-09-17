@@ -17,6 +17,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+
 import uct.snapvote.components.BarGraph;
 import uct.snapvote.util.PollManager;
 
@@ -67,13 +69,22 @@ public class ResultActivity extends Activity {
         try{
             JSONArray results = poll.getJSONArray("results");
             for(int i=0; i < results.length(); i++){
-                JSONArray result = results.getJSONArray(i);
-                int colour = result.getInt(0);
-                int count = result.getInt(1);
+                JSONObject result = results.getJSONObject(i);
+                int colour = result.getInt("colour");
+                int count = result.getInt("count");
 
-                barGraph.addBar(count, Integer.toHexString(colour), colour);
+                barGraph.addBar(count, getColourName(colour), colour);
             }
         }catch(JSONException e){}
+    }
+
+    private String getColourName(int colour)
+    {
+        if (colour == Color.BLACK) return "Black";
+        if (colour == Color.GREEN) return "Green";
+        if (colour == Color.BLUE) return "Blue";
+        if (colour == Color.RED) return "Red";
+        return "Unknown";
     }
 
     private void savePoll(String pollTitle){

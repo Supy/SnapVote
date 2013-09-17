@@ -20,9 +20,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import uct.snapvote.util.Pair;
+import uct.snapvote.util.PollListAdapter;
 import uct.snapvote.util.PollManager;
 
 public class MainActivity extends Activity {
@@ -43,19 +46,15 @@ public class MainActivity extends Activity {
         btnNewPoll = (Button) findViewById(R.id.btnNewPoll);
 
         previousPolls = PollManager.getAllPolls(MainActivity.this);
-        List<String> titles = new Vector<String>(previousPolls.length());
+        List<Pair<String, String>> titledates = new ArrayList<Pair<String, String>>();
         for(int i=0; i < previousPolls.length(); i++){
             try{
                 JSONObject poll = previousPolls.getJSONObject(i);
-                titles.add(poll.getString("title"));
+                titledates.add(new Pair<String, String>(poll.getString("title"),poll.getString("date")));
             }catch (Exception e){}
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_2, android.R.id.text1, titles.toArray( new String[titles.size()] ));
-
-
-        listPreviousPolls.setAdapter(adapter);
+        listPreviousPolls.setAdapter(new PollListAdapter(this, titledates));
         listPreviousPolls.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long id) {
