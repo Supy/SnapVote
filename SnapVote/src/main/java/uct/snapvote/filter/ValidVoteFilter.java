@@ -112,6 +112,9 @@ public class ValidVoteFilter{
             int numBlue = 0;
             int numBlack = 0;
             int numWhitesOutside = 0;
+            int numInsideSamples = 0;
+
+            float[] totalHsv = new float[]{0,0,0};
 
             for(BlobSampler.Sample sample : blob.samples){
 
@@ -119,52 +122,43 @@ public class ValidVoteFilter{
                 float[] hsv = new float[3];
                 Color.colorToHSV(sample.colour, hsv);
 
-                float h = hsv[0];
-                float s = hsv[1]*100;
-                float v = hsv[2]*100;
-
-                // TODO: Need to adjust these values to get the best combinations.
                 if(sample.insideSample){
-                    if((s <= 25 && v <= 50) || (s <= 55 && v <= 25)){
-                        numBlack++;
-                    }else if(s >= 22){     // Less than this and we have grey. We don't want grey.
-                        // Colours
-                        if((h >= 330 || h < 30) && s >= 40 && v >= 70){
-                            numRed++;
-                        }else if(h >= 100 && h <= 160){
-                            numGreen++;
-                        }else if(h >= 210 && h < 270){
-                            numBlue++;
-                        }
-                    }
-                }else if(v >= 75 && s <= 16){
+                    // Account for the red hue wrap-around which makes a bad average.
+                    totalHsv[0] += (hsv[0] >= 330) ? hsv[0] - 330 : hsv[0];
+                    totalHsv[1] += hsv[1];
+                    totalHsv[2] += hsv[2];
+                    numInsideSamples++;
+                }else if(hsv[2] >= 0.75 && hsv[1] <= 0.16){
                     numWhitesOutside++;
                 }
             }
 
-            int maxColour = Math.max(Math.max(numBlack, numBlue), Math.max(numRed, numGreen));
+            float h = totalHsv[0]/numInsideSamples;
+            float s = (totalHsv[1]/numInsideSamples)*100;
+            float v = (totalHsv[2]/numInsideSamples)*100;
 
             // A blob is considered a valid vote if:
             //  - number of white outside samples >= 2 (i.e. on a white page)
             // AND
-            //  - to be classified as a colour, the number of samples with that colour as their maximum component must be >= 3. (i.e. majority rules)
+            //  - to be classified as a colour, the average of all samples taken inside the blob must fall within range
 
-            if(numWhitesOutside >= 2 && maxColour >= 3){
-                if(maxColour == numBlack){
-                    blob.assignedColour = 0;
-                    blacks++;
-                }else if(maxColour == numRed){
+            // Colours
+            if(numWhitesOutside >= 2){
+                if((h >= 330 || h < 30) && s >= 40 && v >= 70){
                     blob.assignedColour = 1;
                     reds++;
-                }else if(maxColour == numGreen){
+                }else if(h >= 100 && h <= 164 && s >= 20){
                     blob.assignedColour = 2;
                     greens++;
-                }else{
+                }else if(h >= 210 && h < 270 && s >= 55){
                     blob.assignedColour = 3;
                     blues++;
+                }else if((s <= 25 && v <= 40)){
+                    blob.assignedColour = 0;
+                    blacks++;
+                }else{
+                    blobList.remove(i);
                 }
-
-                correctBlobs++;
             }else{
                 blobList.remove(i);
             }

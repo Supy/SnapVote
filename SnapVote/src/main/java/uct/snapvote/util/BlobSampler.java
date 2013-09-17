@@ -11,7 +11,7 @@ import uct.snapvote.ImageByteBuffer;
 public class BlobSampler {
 
     // % and hard value offsets for determining where to take colour samples.
-    private static final short PIXEL_OFFSET = 3;
+    private static final short PIXEL_OFFSET = 6;
     private static final short INSIDE_PIXEL_OFFSET = 1;
     private static final double PERCENTAGE_OFFSET = 0.35;
 
@@ -88,35 +88,61 @@ public class BlobSampler {
             }
             // --
 
+            int xStart = centerX - widthPercentage - INSIDE_PIXEL_OFFSET;
+            int xEnd = centerX + widthPercentage + INSIDE_PIXEL_OFFSET;
+            int yStart = (centerY - heightPercentage - INSIDE_PIXEL_OFFSET) * imageWidth;
+            int yEnd = (centerY + heightPercentage + INSIDE_PIXEL_OFFSET) * imageWidth;
+
+            // Every third row, every third column
+            int yStep = imageWidth * 3;
+            int xStep = 3;
+
+            for(int y=yStart; y < yEnd; y += yStep){
+                for(int x=xStart; x < xEnd; x += xStep){
+                    Sample s = new Sample(y+x, blob, true);
+                    samples.add(s);
+                    blob.attachSample(s);
+                    source.set(x, y%imageWidth, (byte) 255);
+                }
+            }
+
+
+/*
             // -- Inside samples
             int iTopIndex = ((centerY - heightPercentage - INSIDE_PIXEL_OFFSET) * imageWidth) + centerX;
             Sample iTop = new Sample(iTopIndex, blob, true);
             samples.add(iTop);
             blob.attachSample(iTop);
+            */
 
             drawLine(centerX, centerX, centerY - heightPercentage - INSIDE_PIXEL_OFFSET, centerY, source, (byte) 255);
-
+/*
             int iBottomIndex = ((centerY + heightPercentage + INSIDE_PIXEL_OFFSET) * imageWidth) + centerX;
             Sample iBottom = new Sample(iBottomIndex, blob, true);
             samples.add(iBottom);
             blob.attachSample(iBottom);
+            */
 
             drawLine(centerX, centerX, centerY, centerY + heightPercentage + INSIDE_PIXEL_OFFSET, source, (byte) 255);
 
+            /*
             int iLeftIndex = (centerY * imageWidth) + centerX - widthPercentage - INSIDE_PIXEL_OFFSET;
             Sample iLeft = new Sample(iLeftIndex, blob, true);
             samples.add(iLeft);
             blob.attachSample(iLeft);
+            */
 
             drawLine(centerX - widthPercentage - INSIDE_PIXEL_OFFSET, centerX, centerY, centerY, source, (byte) 255);
 
+            /*
             int iRightIndex = (centerY * imageWidth) + centerX + widthPercentage + INSIDE_PIXEL_OFFSET;
             Sample iRight = new Sample(iRightIndex, blob, true);
             samples.add(iRight);
             blob.attachSample(iRight);
-
+*/
             drawLine(centerX, centerX + widthPercentage + INSIDE_PIXEL_OFFSET, centerY, centerY, source, (byte) 255);
             // --
+
         }
 
         return samples;
