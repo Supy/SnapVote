@@ -1,12 +1,14 @@
 package uct.snapvote;
 
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Environment;
@@ -20,7 +22,9 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -146,37 +150,38 @@ public class ProcessActivity extends Activity {
 
     private void saveOverlayImage(List<DetectedSquare> squareList) {
         try {
-            ImageInputStream imageInputStream = new ImageInputStream(imageUri, this.getContentResolver());
+            Uri contentURI = Uri.parse(imageUri);
+            ContentResolver cr = getContentResolver();
 
-            int imageHeight = imageInputStream.height;
-            int imageWidth = imageInputStream.width;
+            InputStream in = cr.openInputStream(contentURI);
+
 
             // read image attributes
             BitmapFactory.Options iOptions = new BitmapFactory.Options();
-            iOptions.inJustDecodeBounds = true;
             iOptions.inPreferredConfig = Bitmap.Config.RGB_565;
             iOptions.inSampleSize = 4;
 
-            Bitmap bm = BitmapFactory.decodeStream(imageInputStream.getInputStream(), null, iOptions);
+            Bitmap bm = BitmapFactory.decodeStream(in, null, iOptions);
 
             android.graphics.Bitmap.Config bitmapConfig = bm.getConfig();
+
             Bitmap bmcpy = bm.copy(bitmapConfig, true);
+
+            int imageHeight = bmcpy.getHeight();
+            int imageWidth = bmcpy.getWidth();
 
             Canvas canvas = new Canvas(bmcpy);
 
             Paint p = new Paint();
             p.setStyle(Paint.Style.FILL);
 
-            float divx = (float)bm.getWidth() / imageWidth;
-            float divy = (float)bm.getHeight() / imageHeight;
-
             for(DetectedSquare square : squareList) {
                 p.setColor(square.Colour());
 
-                int x = (int)(divx * square.Left());
-                int y = (int)(divy * square.Top());
-                int x2 = (int)(divx * square.Right())+1;
-                int y2 = (int)(divy * square.Bottom())+1;
+                int x = (int)(square.Left()/4.0);
+                int y = (int)(square.Top()/4.0);
+                int x2 = (int)(square.Right()/4.0)+1;
+                int y2 = (int)(square.Bottom()/4.0)+1;
 
                 canvas.drawRect(x,y,x2,y2,p);
             }

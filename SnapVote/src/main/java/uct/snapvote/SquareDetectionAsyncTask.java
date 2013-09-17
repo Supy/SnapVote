@@ -80,36 +80,44 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("7", "Sobel Filter: " + timer.toStringSplit()); timer.split();
 
             // 3. == Canny edge detection
-            BitSet visitedPixels = new BitSet(buffer1.getHeight() * buffer1.getWidth());
 
             // buffer1 = input, input direction data
             peakFilter(buffer1, buffer3, cannyPeakLow, cannyPeakHigh);  // INPLACE on buffer1
 
 
             buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
-            runExpansionFilter(buffer1, buffer2, visitedPixels);
+
+            runExpansionFilter(buffer1, buffer2);
+
+            buffer1 = new ImageByteBuffer(buffer2.getWidth(), buffer2.getHeight());
+
+            runErosionFilter(buffer2, buffer1);
+
+            BitSet visitedPixels = ConvertToBitSet(buffer1);
+
 
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
 
 
             // == Garbage Collection
-            buffer1 = null; buffer3 = null;
+            buffer2 = null; buffer3 = null;
             System.gc();
 
+
             // 4. == Blob Detection
-            BlobDetectorFilter bdf = new BlobDetectorFilter(buffer2, visitedPixels, buffer2.getWidth(), buffer2.getHeight());
+            BlobDetectorFilter bdf = new BlobDetectorFilter(buffer1, visitedPixels, buffer1.getWidth(), buffer1.getHeight());
             bdf.run();
             publishProgress("39", "Blob Detect: " + timer.toStringSplit());timer.split();
 
             // 5. == Blob Filtering
-            ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer2);
+            ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer1);
             publishProgress("9", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
 
             // TODO: Remove the saving when not required
             // 6. == Create output bitmap
-            Bitmap testImage = buffer2.createBitmap();
+            Bitmap testImage = buffer1.createBitmap();
             publishProgress("1", "Created Bitmap");
 
             // 7. == Save to sdcard0/Pictures
@@ -122,6 +130,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             fo.write(bytes.toByteArray());
             fo.close();
             publishProgress("1", "Saved.");
+
 
             // 6. Output Data
             List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
@@ -360,7 +369,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         }while(more);
     }
 
-    private void runExpansionFilter(ImageByteBuffer source, ImageByteBuffer destination, BitSet visitpixels)
+    private void runExpansionFilter(ImageByteBuffer source, ImageByteBuffer destination)
     {
         // TODO: Move this into settings.
         final int MIN_EXPANSION = 1;
@@ -382,10 +391,9 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                 {
                     for(int p = -expand; p <= expand; p++)
                     {
-                        visitpixels.set((y+p) * source.getWidth() + x - expand, (y+p) * source.getWidth() + x + expand);
                         for(int q = -expand; q <= expand; q++)
                         {
-                            destination.set(x+q, y+p, (byte) 60);
+                            destination.set(x+q, y+p, (byte) 255);
                         }
                     }
                 }
@@ -397,41 +405,55 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
     }
 
-    private void runErosionFilter(ImageByteBuffer source, ImageByteBuffer destination, BitSet visitpixels)
+    private void runErosionFilter(ImageByteBuffer source, ImageByteBuffer destination)
     {
-        // TODO: Move this into settings.
-        int MIN_EXPANSION = 1;
-        int MAX_EXPANSION = 2;
 
         // Clear out remaining potential peaks that have lost their potential ;(
-        for(int y = MIN_EXPANSION; y < source.getHeight()-MAX_EXPANSION; y++)
+        for(int y = 2; y < source.getHeight()-2; y++)
         {
 
-            // Dilate each pixel. Dilation amount increases the nearer to the bottom of the image
-            // you are. This is because depth of students is further away at the back.
-            int expand = MIN_EXPANSION + (int) (((MAX_EXPANSION - MIN_EXPANSION) *  (y * 1.0 / source.getHeight())) + 0.5);
-
-            for(int x = expand+1; x < source.getWidth()-expand-1; x++)
+            for(int x = 2; x < source.getWidth()-2; x++)
             {
                 boolean filled = true;
-                for(int p = -expand; p <= expand; p++)
+                for(int p = -1; p <= 1; p++)
                 {
-                    for(int q = -expand; q <= expand; q++)
+                    if (!filled) break;
+                    for(int q = -1; q <= 1; q++)
                     {
-                        filled = filled && visitpixels.get((y+p) * source.getWidth() + (x+q) - expand);
+                        filled = (source.get(x+q,y+p) == (byte)255);
+                        if (!filled) break;
                     }
                 }
 
-                // Expand any peaks out by 1px to fill small gaps.
                 if(filled)
                 {
-                    destination.set(x, y, (byte) 255);
+                    destination.set(x, y, (byte) 60);
                 }
 
             }
         }
 
+
+
     }
+
+    protected BitSet ConvertToBitSet(ImageByteBuffer buf)
+    {
+        BitSet bs = new BitSet(buf.getHeight() * buf.getWidth());
+
+        for(int y=0;y<buf.getHeight();y++)
+        {
+            int index = y* buf.getWidth();
+            for(int x=0;x<buf.getWidth();x++)
+            {
+                if (buf.get(x,y) > (byte)0) bs.set(index+x);
+            }
+        }
+
+        return bs;
+    }
+
+
 
 
     @Override
