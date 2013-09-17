@@ -102,7 +102,7 @@ public class BlobSampler {
                     Sample s = new Sample(y+x, blob, true);
                     samples.add(s);
                     blob.attachSample(s);
-                    source.set(x, y%imageWidth, (byte) 255);
+                    source.set(x, y/imageWidth, (byte) 255);
                 }
             }
 

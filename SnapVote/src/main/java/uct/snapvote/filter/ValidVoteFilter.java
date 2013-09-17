@@ -114,28 +114,41 @@ public class ValidVoteFilter{
             int numWhitesOutside = 0;
             int numInsideSamples = 0;
 
-            float[] totalHsv = new float[]{0,0,0};
+            float[] totalRgb = new float[]{0,0,0};
 
             for(BlobSampler.Sample sample : blob.samples){
 
-                // Easier to classify colours in Hue,Saturation,Value (HSV) format, so convert it.
+                // Keep in RGB to make averaging easier
+                float r = (float)((sample.colour >> 16) & 255) / 255f;
+                float g = (float)((sample.colour >> 8) & 255) / 255f;
+                float b = (float)(sample.colour & 255) / 255f;
+
+                // HSV to check for whiteness
                 float[] hsv = new float[3];
                 Color.colorToHSV(sample.colour, hsv);
 
                 if(sample.insideSample){
                     // Account for the red hue wrap-around which makes a bad average.
-                    totalHsv[0] += (hsv[0] >= 340) ? hsv[0] - 340 : hsv[0];
-                    totalHsv[1] += hsv[1];
-                    totalHsv[2] += hsv[2];
+                    totalRgb[0] += r;
+                    totalRgb[1] += g;
+                    totalRgb[2] += b;
                     numInsideSamples++;
                 }else if(hsv[2] >= 0.75 && hsv[1] <= 0.16){
                     numWhitesOutside++;
                 }
             }
 
-            float h = totalHsv[0]/numInsideSamples;
-            float s = (totalHsv[1]/numInsideSamples)*100;
-            float v = (totalHsv[2]/numInsideSamples)*100;
+            totalRgb[0] = (totalRgb[0]/numInsideSamples)*255;
+            totalRgb[1] = (totalRgb[1]/numInsideSamples)*255;
+            totalRgb[2] = (totalRgb[2]/numInsideSamples)*255;
+
+            int colour = ((int) totalRgb[0] << 16) | ((int) totalRgb[1] << 8) | (int) totalRgb[2];
+            float[] hsv = new float[3];
+            Color.colorToHSV(colour, hsv);
+
+            float h = hsv[0];
+            float s = hsv[1]*100;
+            float v = hsv[2]*100;
 
             // A blob is considered a valid vote if:
             //  - number of white outside samples >= 2 (i.e. on a white page)
@@ -144,7 +157,7 @@ public class ValidVoteFilter{
 
             // Colours
             if(numWhitesOutside >= 2){
-                if(h <= 20 && s >= 50 && v >= 63){
+                if((h <= 20 || h >= 340) && s >= 50 && v >= 63){
                     blob.assignedColour = 1;
                     reds++;
                 }else if(h >= 100 && h <= 164 && s >= 20){
