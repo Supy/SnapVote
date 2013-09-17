@@ -124,7 +124,7 @@ public class ValidVoteFilter{
 
                 if(sample.insideSample){
                     // Account for the red hue wrap-around which makes a bad average.
-                    totalHsv[0] += (hsv[0] >= 330) ? hsv[0] - 330 : hsv[0];
+                    totalHsv[0] += (hsv[0] >= 340) ? hsv[0] - 340 : hsv[0];
                     totalHsv[1] += hsv[1];
                     totalHsv[2] += hsv[2];
                     numInsideSamples++;
@@ -144,7 +144,7 @@ public class ValidVoteFilter{
 
             // Colours
             if(numWhitesOutside >= 2){
-                if((h >= 330 || h < 30) && s >= 40 && v >= 70){
+                if(h <= 20 && s >= 50 && v >= 63){
                     blob.assignedColour = 1;
                     reds++;
                 }else if(h >= 100 && h <= 164 && s >= 20){
@@ -153,7 +153,7 @@ public class ValidVoteFilter{
                 }else if(h >= 210 && h < 270 && s >= 55){
                     blob.assignedColour = 3;
                     blues++;
-                }else if((s <= 25 && v <= 40)){
+                }else if(s <= 25 && v <= 40){
                     blob.assignedColour = 0;
                     blacks++;
                 }else{
