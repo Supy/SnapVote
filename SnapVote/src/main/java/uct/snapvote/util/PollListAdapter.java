@@ -1,6 +1,7 @@
 package uct.snapvote.util;
 
 import android.content.Context;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,11 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import android.widget.TwoLineListItem;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,12 +22,21 @@ import java.util.List;
 public class PollListAdapter extends BaseAdapter {
 
     private Context context;
-    private List<Pair<String, String>> contents;
+    private List<JSONObject> contents;
 
-    public PollListAdapter(Context c, List<Pair<String, String>> titledates)
+    public PollListAdapter(Context c, JSONArray polls)
     {
         this.context = c;
-        this.contents = titledates;
+        this.contents =new ArrayList<JSONObject>();
+
+        for(int i=0;i<polls.length();i++)
+        {
+            try {
+                this.contents.add(polls.getJSONObject(i));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -37,7 +52,7 @@ public class PollListAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int i) {
-        return 0;
+        return i;
     }
 
     @Override
@@ -57,8 +72,8 @@ public class PollListAdapter extends BaseAdapter {
         TextView text1 = twoLineListItem.getText1();
         TextView text2 = twoLineListItem.getText2();
 
-        text1.setText(contents.get(i).left);
-        text2.setText("" + contents.get(i).right);
+        text1.setText(contents.get(i).optString("title", "<title>"));
+        text2.setText("" + contents.get(i).optString("date","<date>"));
 
         return twoLineListItem;
     }

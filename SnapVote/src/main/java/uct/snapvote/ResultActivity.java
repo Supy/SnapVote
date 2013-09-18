@@ -42,6 +42,7 @@ public class ResultActivity extends Activity {
         TextView txtTitle = (TextView) findViewById(R.id.txtTitle);
 
         String pollData = getIntent().getStringExtra("PollResult");
+        Log.d("uct.snapvote", "ResultActivity.OnCreate : polldata : '"+pollData+"'");
         try{
             poll = new JSONObject(pollData);
             drawGraph();

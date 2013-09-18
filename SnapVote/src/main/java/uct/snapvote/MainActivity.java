@@ -7,11 +7,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -22,9 +22,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
-import uct.snapvote.util.Pair;
 import uct.snapvote.util.PollListAdapter;
 import uct.snapvote.util.PollManager;
 
@@ -46,15 +44,8 @@ public class MainActivity extends Activity {
         btnNewPoll = (Button) findViewById(R.id.btnNewPoll);
 
         previousPolls = PollManager.getAllPolls(MainActivity.this);
-        List<Pair<String, String>> titledates = new ArrayList<Pair<String, String>>();
-        for(int i=0; i < previousPolls.length(); i++){
-            try{
-                JSONObject poll = previousPolls.getJSONObject(i);
-                titledates.add(new Pair<String, String>(poll.getString("title"),poll.getString("date")));
-            }catch (Exception e){}
-        }
 
-        listPreviousPolls.setAdapter(new PollListAdapter(this, titledates));
+        listPreviousPolls.setAdapter(new PollListAdapter(this, previousPolls));
         listPreviousPolls.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long id) {
@@ -139,6 +130,7 @@ public class MainActivity extends Activity {
     private void launchResultsScreen(long id) {
         try{
             JSONObject poll = previousPolls.getJSONObject((int) id);
+            Log.d("uct.snapvote", "showing old result: "+poll.toString());
             Intent intent = new Intent(MainActivity.this, ResultActivity.class);
             intent.putExtra("PollResult", poll.toString());
             startActivity(intent);
