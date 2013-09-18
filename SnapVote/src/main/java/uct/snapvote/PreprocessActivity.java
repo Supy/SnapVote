@@ -80,6 +80,8 @@ public class PreprocessActivity extends Activity {
         intent.putExtra("ColourArray", asInts);
 
         startActivity(intent);
+
+        finish();
     }
 
     /**

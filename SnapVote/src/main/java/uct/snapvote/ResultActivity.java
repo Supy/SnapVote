@@ -109,6 +109,7 @@ public class ResultActivity extends Activity {
                                 // Save the current poll and go back to the main screen
                                 savePoll(title);
                                 Intent intent = new Intent(ResultActivity.this, MainActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                 startActivity(intent);
                             }
                         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
