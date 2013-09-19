@@ -110,6 +110,16 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             bdf.run();
             publishProgress("39", "Blob Detect: " + timer.toStringSplit());timer.split();
 
+
+            Log.d("uct.snapvote", "blobs:");
+            for(Blob b : bdf.getBlobList())
+            {
+                int width = b.xMax-b.xMin;
+                int height = b.yMax - b.yMin;
+                Log.d("uct.snapvote", ""+(b.xMin-width) + ","+(b.yMin-height)+"," + (width*3)+","+(height*3));
+            }
+
+
             // 5. == Blob Filtering
             ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer1);
             publishProgress("9", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
