@@ -95,30 +95,16 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
             BitSet visitedPixels = ConvertToBitSet(buffer1);
 
-
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
-
-
 
             // == Garbage Collection
             buffer2 = null; buffer3 = null;
             System.gc();
 
-
             // 4. == Blob Detection
             BlobDetectorFilter bdf = new BlobDetectorFilter(buffer1, visitedPixels, buffer1.getWidth(), buffer1.getHeight());
             bdf.run();
             publishProgress("39", "Blob Detect: " + timer.toStringSplit());timer.split();
-
-
-            Log.d("uct.snapvote", "blobs:");
-            for(Blob b : bdf.getBlobList())
-            {
-                int width = b.xMax-b.xMin;
-                int height = b.yMax - b.yMin;
-                Log.d("uct.snapvote", ""+(b.xMin-width) + ","+(b.yMin-height)+"," + (width*3)+","+(height*3));
-            }
-
 
             // 5. == Blob Filtering
             ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer1);
@@ -140,7 +126,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             fo.write(bytes.toByteArray());
             fo.close();
             publishProgress("1", "Saved.");
-
 
             // 6. Output Data
             List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
