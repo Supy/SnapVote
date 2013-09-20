@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -36,6 +37,15 @@ public class PollManager {
         FileOutputStream fOut = a.openFileOutput(DATA_FILE, Context.MODE_APPEND) ;
         OutputStreamWriter osw = new OutputStreamWriter(fOut) ;
         osw.write(data) ;
+        osw.flush() ;
+        osw.close() ;
+    }
+
+    // overwrite the file with nothing. This is easier than deleting the file.
+    public static void clearFile(Activity a) throws IOException
+    {
+        FileOutputStream fOut = a.openFileOutput(DATA_FILE, 0) ;
+        OutputStreamWriter osw = new OutputStreamWriter(fOut) ;
         osw.flush() ;
         osw.close() ;
     }

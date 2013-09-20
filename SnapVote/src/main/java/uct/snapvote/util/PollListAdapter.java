@@ -27,8 +27,12 @@ public class PollListAdapter extends BaseAdapter {
     public PollListAdapter(Context c, JSONArray polls)
     {
         this.context = c;
-        this.contents =new ArrayList<JSONObject>();
+        rebuild(polls);
+    }
 
+    public void rebuild(JSONArray polls)
+    {
+        this.contents =new ArrayList<JSONObject>();
         for(int i=0;i<polls.length();i++)
         {
             try {
@@ -56,15 +60,12 @@ public class PollListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
-
+    public View getView(int i, View view, ViewGroup viewGroup)
+    {
         TwoLineListItem twoLineListItem;
-
         if (view == null) {
-            LayoutInflater inflater = (LayoutInflater) context
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            twoLineListItem = (TwoLineListItem) inflater.inflate(
-                    android.R.layout.simple_list_item_2, null);
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            twoLineListItem = (TwoLineListItem) inflater.inflate( android.R.layout.simple_list_item_2, null);
         } else {
             twoLineListItem = (TwoLineListItem) view;
         }
