@@ -80,21 +80,17 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("7", "Sobel Filter: " + timer.toStringSplit()); timer.split();
 
             // 3. == Canny edge detection
-
-            // buffer1 = input, input direction data
             peakFilter(buffer1, buffer3, cannyPeakLow, cannyPeakHigh);  // INPLACE on buffer1
 
-
+            // expand and erode peaks before blob detection
             buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
-
             runExpansionFilter(buffer1, buffer2);
 
             buffer1 = new ImageByteBuffer(buffer2.getWidth(), buffer2.getHeight());
-
             runErosionFilter(buffer2, buffer1);
 
+            // don't need colours anymore, convert to bitset
             BitSet visitedPixels = ConvertToBitSet(buffer1);
-
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
             // == Garbage Collection
@@ -388,9 +384,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                         }
                     }
                 }
-
-
-
             }
         }
 
@@ -402,7 +395,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         // Clear out remaining potential peaks that have lost their potential ;(
         for(int y = 2; y < source.getHeight()-2; y++)
         {
-
             for(int x = 2; x < source.getWidth()-2; x++)
             {
                 boolean filled = true;
@@ -415,12 +407,10 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
                         if (!filled) break;
                     }
                 }
-
                 if(filled)
                 {
                     destination.set(x, y, (byte) 60);
                 }
-
             }
         }
 

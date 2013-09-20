@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 
@@ -106,43 +107,72 @@ public class ValidVoteFilter{
 
         for(int i = blobList.size()-1; i >= 0; i--){
             Blob blob = blobList.get(i);
+            if(!classifyBlob(blob)) blobList.remove(i);
 
-            int numRed = 0;
-            int numGreen = 0;
-            int numBlue = 0;
-            int numBlack = 0;
-            int numWhitesOutside = 0;
-            int numInsideSamples = 0;
+            correctBlobs++;
+            if(blob.assignedColour== Color.RED) reds++;
+            if(blob.assignedColour== Color.GREEN) greens++;
+            if(blob.assignedColour== Color.BLACK) blacks++;
+            if(blob.assignedColour== Color.BLUE) blues++;
+        }
+        // Math.max(totalred, Math.max(totalred, totalblue)) < 40)
+        // s <= 25 && v <= 40
+        Log.d("uct.snapvote", "Identified "+correctBlobs+" as actual votes. Red: "+reds+" Green: "+greens+" Blue: "+blues+" Black: "+blacks);
+    }
 
-            float[] totalRgb = new float[]{0,0,0};
+    public boolean classifyBlob(Blob blob)
+    {
+        int numWhitesOutside = 0;
+        int numInsideSamples = 0;
 
-            for(BlobSampler.Sample sample : blob.samples){
+        int totalred = 0;
+        int totalgreen = 0;
+        int totalblue = 0;
 
-                // Keep in RGB to make averaging easier
-                float r = (float)((sample.colour >> 16) & 255) / 255f;
-                float g = (float)((sample.colour >> 8) & 255) / 255f;
-                float b = (float)(sample.colour & 255) / 255f;
+        int valuered, valuegreen, valueblue;
 
-                // HSV to check for whiteness
-                float[] hsv = new float[3];
-                Color.colorToHSV(sample.colour, hsv);
+        List<Integer> insideSquare = new ArrayList<Integer>();
+        List<Integer> whiteBorder = new ArrayList<Integer>();
 
-                if(sample.insideSample){
-                    // Account for the red hue wrap-around which makes a bad average.
-                    totalRgb[0] += r;
-                    totalRgb[1] += g;
-                    totalRgb[2] += b;
-                    numInsideSamples++;
-                }else if(hsv[2] >= 0.75 && hsv[1] <= 0.16){
-                    numWhitesOutside++;
-                }
-            }
+        for(BlobSampler.Sample sample : blob.samples)
+        {
+            if (sample.insideSample)
+                insideSquare.add(sample.colour);
+            else
+                whiteBorder.add(sample.colour);
+        }
 
-            totalRgb[0] = (totalRgb[0]/numInsideSamples)*255;
-            totalRgb[1] = (totalRgb[1]/numInsideSamples)*255;
-            totalRgb[2] = (totalRgb[2]/numInsideSamples)*255;
+        for(Integer colour : insideSquare)
+        {
+            totalred += (colour >> 16) & 255;
+            totalgreen += (colour >> 8) & 255;
+            totalblue += colour & 255;
+            numInsideSamples++;
+        }
 
-            int colour = ((int) totalRgb[0] << 16) | ((int) totalRgb[1] << 8) | (int) totalRgb[2];
+        for(Integer colour : whiteBorder)
+        {
+            float[] hsv = new float[3];
+            Color.colorToHSV(colour, hsv);
+
+            if(hsv[2] >= 0.75 && hsv[1] <= 0.16) numWhitesOutside++;
+        }
+
+        // calculate average inside colour
+        totalred = totalred/numInsideSamples;
+        totalgreen = totalgreen/numInsideSamples;
+        totalblue = totalblue/numInsideSamples;
+
+        // A blob is considered a valid vote if:
+        //  - number of white outside samples >= 2 (i.e. on a white page)
+        // AND
+        //  - to be classified as a colour, the average of all samples taken inside the blob must fall within range
+
+        // Colours
+        if(numWhitesOutside >= 2){
+
+            int colour = Color.rgb(totalred, totalgreen, totalblue);
+
             float[] hsv = new float[3];
             Color.colorToHSV(colour, hsv);
 
@@ -150,34 +180,32 @@ public class ValidVoteFilter{
             float s = hsv[1]*100;
             float v = hsv[2]*100;
 
-            // A blob is considered a valid vote if:
-            //  - number of white outside samples >= 2 (i.e. on a white page)
-            // AND
-            //  - to be classified as a colour, the average of all samples taken inside the blob must fall within range
-
-
-            // Colours
-            if(numWhitesOutside >= 2){
-                if((h <= 20 || h >= 340) && s >= 50 && v >= 63){
-                    blob.assignedColour = Color.RED;
-                    reds++;
-                }else if(h >= 100 && h <= 164 && s >= 20){
-                    blob.assignedColour = Color.GREEN;
-                    greens++;
-                }else if(h >= 210 && h < 270 && s >= 55){
-                    blob.assignedColour = Color.BLUE;
-                    blues++;
-                }else if(s <= 25 && v <= 40){
-                    blob.assignedColour = Color.BLACK;
-                    blacks++;
-                }else{
-                    blobList.remove(i);
-                }
+            if((h <= 20 || h >= 340) && s >= 50 && v >= 63){
+                blob.assignedColour = Color.RED;
+            }else if(h >= 100 && h <= 164 && s >= 20){
+                blob.assignedColour = Color.GREEN;
+            }else if(h >= 210 && h < 270 && s >= 55){
+                blob.assignedColour = Color.BLUE;
+            }else if(isBlack(totalred, totalgreen, totalblue)){
+                blob.assignedColour = Color.BLACK;
             }else{
-                blobList.remove(i);
+                return false;
             }
+        }else{
+            return false;
         }
-
-        Log.d("uct.snapvote", "Identified "+correctBlobs+" as actual votes. Red: "+reds+" Green: "+greens+" Blue: "+blues+" Black: "+blacks);
+        return true;
     }
+
+    public boolean isBlack(int r, int g, int b)
+    {
+        int av = (r+g+b) / 3;
+        if (Math.abs(r-av) > 10) return false;
+        if (Math.abs(g-av) > 10) return false;
+        if (Math.abs(b-av) > 10) return false;
+        if (av < 100) return  true;
+        return false;
+    }
+
+
 }

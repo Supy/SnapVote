@@ -13,7 +13,7 @@ public class BlobSampler {
     // % and hard value offsets for determining where to take colour samples.
     private static final short PIXEL_OFFSET = 6;
     private static final short INSIDE_PIXEL_OFFSET = 1;
-    private static final double PERCENTAGE_OFFSET = 0.35;
+    private static final double PERCENTAGE_OFFSET = 0.30;
 
     public static class Sample implements Comparable<Sample>{
         public Blob parent;
@@ -43,31 +43,31 @@ public class BlobSampler {
             // Calculate these once per blob and reuse.
             int centerX = (blob.xMax + blob.xMin)/2;
             int centerY = (blob.yMax + blob.yMin)/2;
-            int blobWidth = (blob.xMax - blob.xMin)/2;
-            int blobHeight = (blob.yMax - blob.yMin)/2;
-            int widthPercentage = (int)(blobWidth * PERCENTAGE_OFFSET);
-            int heightPercentage = (int)(blobHeight * PERCENTAGE_OFFSET);
+            int blobHalfWidth = (blob.xMax - blob.xMin)/2;
+            int blobHalfHeight = (blob.yMax - blob.yMin)/2;
+            int widthPercentage = (int)(blobHalfWidth * PERCENTAGE_OFFSET);
+            int heightPercentage = (int)(blobHalfHeight * PERCENTAGE_OFFSET);
 
             // -- Outside samples
-            int oTopIndex = ((centerY - blobHeight - heightPercentage - PIXEL_OFFSET) * imageWidth) + centerX;
+            int oTopIndex = ((centerY - blobHalfHeight - heightPercentage - PIXEL_OFFSET) * imageWidth) + centerX;
             if(oTopIndex >= 0){
                 Sample oTop = new Sample(oTopIndex, blob, false);
                 samples.add(oTop);
                 blob.attachSample(oTop);
 
-                drawLine(centerX, centerX, (centerY - blobHeight - heightPercentage - PIXEL_OFFSET), centerY, source, (byte) 160);
+                drawLine(centerX, centerX, (centerY - blobHalfHeight - heightPercentage - PIXEL_OFFSET), centerY, source, (byte) 255);
             }
 
-            int oBottomIndex = ((centerY + blobHeight + heightPercentage + PIXEL_OFFSET) * imageWidth) + centerX;
+            int oBottomIndex = ((centerY + blobHalfHeight + heightPercentage + PIXEL_OFFSET) * imageWidth) + centerX;
             if(oBottomIndex <= maxPixelIndex){
                 Sample oBottom = new Sample(oBottomIndex, blob, false);
                 samples.add(oBottom);
                 blob.attachSample(oBottom);
 
-                drawLine(centerX, centerX, centerY, (centerY + blobHeight + heightPercentage + PIXEL_OFFSET), source, (byte) 160);
+                drawLine(centerX, centerX, centerY, (centerY + blobHalfHeight + heightPercentage + PIXEL_OFFSET), source, (byte) 255);
             }
 
-            int oLeftOffset = centerX - blobWidth - widthPercentage - PIXEL_OFFSET;
+            int oLeftOffset = centerX - blobHalfWidth - widthPercentage - PIXEL_OFFSET;
             if(oLeftOffset >= 0){
                 int oLeftIndex = (centerY * imageWidth) + oLeftOffset;
                 Sample oLeft = new Sample(oLeftIndex, blob, false);
@@ -77,7 +77,7 @@ public class BlobSampler {
                 drawLine(oLeftOffset, centerX, centerY, centerY, source, (byte) 160);
             }
 
-            int oRightOffset = centerX + blobWidth + widthPercentage + PIXEL_OFFSET;
+            int oRightOffset = centerX + blobHalfWidth + widthPercentage + PIXEL_OFFSET;
             if(oRightOffset < imageWidth){
                 int oRightIndex = (centerY * imageWidth) + oRightOffset;
                 Sample oRight = new Sample(oRightIndex, blob, false);
@@ -88,24 +88,37 @@ public class BlobSampler {
             }
             // --
 
-            int xStart = centerX - widthPercentage - INSIDE_PIXEL_OFFSET;
-            int xEnd = centerX + widthPercentage + INSIDE_PIXEL_OFFSET;
-            int yStart = (centerY - heightPercentage - INSIDE_PIXEL_OFFSET) * imageWidth;
-            int yEnd = (centerY + heightPercentage + INSIDE_PIXEL_OFFSET) * imageWidth;
+            // take 5 x 5 samples
+
+            int widthPercentage2 = (int)(blobHalfWidth * 0.6);
+            int heightPercentage2 = (int)(blobHalfHeight * 0.6);
+
+            int xStart = centerX - widthPercentage2 - 1;
+            int xEnd = centerX + widthPercentage2 + 1;
+            int yStart = centerY - heightPercentage2 - 1;
+            int yEnd = centerY + heightPercentage2 + 1;
 
             // Every third row, every third column
-            int yStep = imageWidth * 3;
-            int xStep = 3;
+            int xStep = (xEnd-xStart) / 4;
+            int yStep = (yEnd-yStart) / 4;
 
-            for(int y=yStart; y < yEnd; y += yStep){
-                for(int x=xStart; x < xEnd; x += xStep){
-                    Sample s = new Sample(y+x, blob, true);
+            for(int i=0;i<5;i++)
+            {
+                int y = yStart + i*yStep;
+                for(int j=0;j<5;j++)
+                {
+                    if (i==0 && j==0) continue;
+                    if (i==0 && j==4) continue;
+                    if (i==4 && j==0) continue;
+                    if (i==4 && j==4) continue;
+                    int x = xStart + j*xStep;
+                    int index = y*imageWidth + x;
+                    Sample s = new Sample(index, blob, true);
                     samples.add(s);
                     blob.attachSample(s);
-                    source.set(x, y/imageWidth, (byte) 255);
+                    source.set(x, y, (byte) 255);
                 }
             }
-
 
 /*
             // -- Inside samples
