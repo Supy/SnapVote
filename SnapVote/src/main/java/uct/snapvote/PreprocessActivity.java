@@ -57,7 +57,7 @@ public class PreprocessActivity extends Activity {
         btnBlue = (CheckBox) findViewById(R.id.chkBlueChoice);
         btnBlack = (CheckBox) findViewById(R.id.chkBlackChoice);
 
-        //load up thumbnail - TODO: move to an asynx task to remove awkward lag
+        // load thumbnail from uri path
         loadThumbnail(uristr);
     }
 
@@ -91,8 +91,6 @@ public class PreprocessActivity extends Activity {
         getActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
-    // TODO: threaded
-    // TODO: check the width and height things, not sure if appropriate, seems to work well though
     private void loadThumbnail(String uri) {
 
         Uri contentURI = Uri.parse(uri);

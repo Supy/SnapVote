@@ -76,7 +76,6 @@ public class ProcessActivity extends Activity {
         yesNoBox.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                // TODO : cancel async task properly
                 cancelProcessingAndReturn();
             }
         });

@@ -27,16 +27,14 @@ public class ValidVoteFilter{
     private ImageInputStream imageInputStream;
     private int imageWidth;
     private int imageHeight;
-    private ImageByteBuffer source;
 
     private PriorityQueue<BlobSampler.Sample> pixelSamples;
 
-    public ValidVoteFilter(List<Blob> blobList, ImageInputStream imageInputStream, ImageByteBuffer source){
+    public ValidVoteFilter(List<Blob> blobList, ImageInputStream imageInputStream){
         this.blobList = blobList;
         this.imageInputStream = imageInputStream;
         this.imageWidth = imageInputStream.width;
         this.imageHeight = imageInputStream.height;
-        this.source = source;
 
         try{
             removeInvalidSizedBlobs();
@@ -60,7 +58,7 @@ public class ValidVoteFilter{
             int height = blob.yMax-blob.yMin;
             int yCenter = (blob.yMax+blob.yMin)/2;
 
-            int minH = (int)(((float)yCenter / source.getHeight()) * 30);
+            int minH = (int)(((float)yCenter / imageHeight) * 30);
 
             if (height > minH) after.add(blob);
         }
@@ -69,7 +67,7 @@ public class ValidVoteFilter{
     }
 
     private void getPixelSamples(){
-        pixelSamples = BlobSampler.createSamples(blobList, imageWidth, imageHeight, source);
+        pixelSamples = BlobSampler.createSamples(blobList, imageWidth, imageHeight);
         Log.d("uct.snapvote", pixelSamples.size()+" blob samples created.");
     }
 
@@ -206,7 +204,7 @@ public class ValidVoteFilter{
             {
                 float[] colourDistances = new float[4];
                 colourDistances[0] = colourDistance(totalred, totalgreen, totalblue, 255,60,60);
-                colourDistances[1] = colourDistance(totalred, totalgreen, totalblue, 40,150,100);
+                colourDistances[1] = colourDistance(totalred, totalgreen, totalblue, 35,129,63);
                 colourDistances[2] = colourDistance(totalred, totalgreen, totalblue, 50,70,200);
                 colourDistances[3] = colourDistance(totalred, totalgreen, totalblue, 37,37,37) + monochromeDistance(totalred, totalgreen, totalblue);
 
@@ -256,12 +254,13 @@ public class ValidVoteFilter{
     public float monochromeDistance(int r, int g, int b)
     {
         int av = (r+g+b) / 3;
-        if (Math.abs(r-av) > 13) return 255;
+        if (Math.abs(r-av) > 15) return 255;
         if (Math.abs(g-av) > 12) return 255;
-        if (Math.abs(b-av) > 13) return 255;
-        return av-180;
+        if (Math.abs(b-av) > 15) return 255;
+        return av-170;
     }
 
-
-
+    public List<Blob> getBlobList() {
+        return blobList;
+    }
 }

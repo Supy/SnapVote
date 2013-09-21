@@ -27,7 +27,6 @@ public class ImageByteBuffer {
     public byte[][] getRealData() {return data;}
 
     // BITMAAAAAAAAAAAAAAAAAAP
-    //  TODO: speed this up. May require changing backing array type
     //  Not really necessary as the app doesn't need to output anything
     public Bitmap createBitmap() {
         Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);  // should attempt to keep all colour data

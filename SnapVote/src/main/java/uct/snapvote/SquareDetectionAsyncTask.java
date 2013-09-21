@@ -70,7 +70,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             ImageByteBuffer buffer2 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
             ImageByteBuffer buffer3 = new ImageByteBuffer(buffer1.getWidth(), buffer1.getHeight());
 
-
             // 1. == Gaussian blur (buffer1 = input, buffer2 = output)
             blur(buffer1, buffer2, gaussianBlurRadius);
             publishProgress("12", "Blurred: " + timer.toStringSplit()); timer.split();
@@ -94,40 +93,24 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
             // == Garbage Collection
-            buffer2 = null; buffer3 = null;
+            buffer1 = null; buffer2 = null; buffer3 = null;
             System.gc();
 
             // 4. == Blob Detection
-            BlobDetectorFilter bdf = new BlobDetectorFilter(buffer1, visitedPixels, buffer1.getWidth(), buffer1.getHeight());
+            BlobDetectorFilter bdf = new BlobDetectorFilter(visitedPixels, imageInputStream);
             bdf.run();
             publishProgress("39", "Blob Detect: " + timer.toStringSplit());timer.split();
 
             // 5. == Blob Filtering
-            ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream, buffer1);
+            ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream);
             publishProgress("9", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
-
-            // TODO: Remove the saving when not required
-            // 6. == Create output bitmap
-            Bitmap testImage = buffer1.createBitmap();
-            publishProgress("1", "Created Bitmap");
-
-            // 7. == Save to sdcard0/Pictures
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            testImage.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
-            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            File f = new File(path, "test.jpg");
-            f.createNewFile();
-            FileOutputStream fo = new FileOutputStream(f);
-            fo.write(bytes.toByteArray());
-            fo.close();
-            publishProgress("1", "Saved.");
 
             // 6. Output Data
             List<DetectedSquare> detectedSquares = new ArrayList<DetectedSquare>();
 
             // Convert blobs to coloured squares that will be
-            for(Blob b : bdf.getBlobList()) {
+            for(Blob b : vvf.getBlobList()) {
                 detectedSquares.add( new DetectedSquare(b.xMin, b.yMin, b.xMax, b.yMax, b.assignedColour) );
             }
 
@@ -358,7 +341,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
     private void runExpansionFilter(ImageByteBuffer source, ImageByteBuffer destination)
     {
-        // TODO: Move this into settings.
         final int MIN_EXPANSION = 1;
         final int MAX_EXPANSION = 3;
 

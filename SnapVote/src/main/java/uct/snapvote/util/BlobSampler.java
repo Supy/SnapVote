@@ -33,7 +33,7 @@ public class BlobSampler {
         }
     }
 
-    public static PriorityQueue<Sample> createSamples(List<Blob> blobList, int imageWidth, int imageHeight, ImageByteBuffer source){
+    public static PriorityQueue<Sample> createSamples(List<Blob> blobList, int imageWidth, int imageHeight){
         PriorityQueue<Sample> samples = new PriorityQueue<Sample>(blobList.size() * 8);
 
         int maxPixelIndex = (imageWidth * imageHeight)-1;
@@ -152,34 +152,10 @@ public class BlobSampler {
                     Sample s = new Sample(index, blob, true);
                     samples.add(s);
                     blob.attachSample(s);
-                    source.set(x, y, (byte) 255);
                 }
             }
-
-
-
-        }
-
-        for (Sample s : samples)
-        {
-            int x = s.pixelIndex % imageWidth;
-            int y = s.pixelIndex / imageWidth;
-            source.set(x,y,(byte)255);
         }
 
         return samples;
-    }
-
-    // TODO: debugging method. Can be removed at the end along with all references to "source" in this file.
-    private static void drawLine(int xMin, int xMax, int yMin, int yMax, ImageByteBuffer source, byte colour){
-        if(xMin == xMax){
-            for(int y=yMin; y <= yMax; y++){
-                source.set(xMin, y, colour);
-            }
-        }else{
-            for(int x=xMin; x <= xMax; x++){
-                source.set(x, yMin, colour);
-            }
-        }
     }
 }

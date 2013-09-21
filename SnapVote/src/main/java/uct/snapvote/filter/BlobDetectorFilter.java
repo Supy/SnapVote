@@ -8,6 +8,7 @@ import java.util.List;
 
 import uct.snapvote.ImageByteBuffer;
 import uct.snapvote.util.Blob;
+import uct.snapvote.util.ImageInputStream;
 import uct.snapvote.util.IntQueue;
 
 /**
@@ -21,11 +22,11 @@ public class BlobDetectorFilter extends BaseRegionFilter {
     private int height;
     private List<Blob> blobs;
 
-    public BlobDetectorFilter(ImageByteBuffer source, BitSet pixelBitset, int width, int height){
-        super(source, null);
+    public BlobDetectorFilter(BitSet pixelBitset, ImageInputStream imageInputStream){
+        super(null, null,0,0,imageInputStream.width-1, imageInputStream.height-1);
         this.visitedPixels = pixelBitset;
-        this.width = width;
-        this.height = height;
+        this.width = imageInputStream.width;
+        this.height = imageInputStream.height;
         this.blobs = new ArrayList<Blob>();
     }
 
@@ -89,34 +90,13 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                         blob.addPixel(queuePixelIndex % width, queuePixelIndex / width);
                     }
                     
-                    if(blob.valid())
-                        blobs.add(blob);
-
+                    if(blob.valid()) blobs.add(blob);
 
                 }
             }
         }
 
         Log.d("uct.snapvote", "Blobs: "+blobs.size());
-
-        // TODO: Remove this code once the app is complete.
-        // Draw borders around blobs.
-        for(Blob b : blobs)
-        {
-            for(int y=b.yMin;y< b.yMax;y++)
-            {
-                source.set(b.xMin,y,(byte)255);
-                source.set(b.xMax,y,(byte)255);
-
-                if( y ==b.yMin  || y == (b.yMax-1))
-                {
-                    for(int x=b.xMin;x< b.xMax;x++)
-                    {
-                        source.set(x,y,(byte)255);
-                    }
-                }
-            }
-        }
     }
 
     public List<Blob> getBlobList(){
