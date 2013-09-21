@@ -23,12 +23,12 @@ public class SobelTRF extends ThreadedBaseRegionFilter {
     }
 
     public void run() {
-        Log.d("uct.snapvote", "start " + this.x1 + " " + this.y1);
+        Log.d("uct.snapvote", "start " + this.left + " " + this.top);
 
         // Loop through all pixels in the given region
 
-        for(int y= y1;y< y2;y++) {
-            for(int x= x1;x< x2;x++) {
+        for(int y= top;y< right;y++) {
+            for(int x= left;x< bottom;x++) {
 
                 int g00 = source.get(x-1, y-1) & 0xFF; int g01 = source.get(x, y-1) & 0xFF; int g02 = source.get(x+1, y-1) & 0xFF;
                 int g10 = source.get(x-1, y) & 0xFF;                                        int g12 = source.get(x+1, y) & 0xFF;
@@ -45,7 +45,7 @@ public class SobelTRF extends ThreadedBaseRegionFilter {
             }
         }
 
-        Log.d("uct.snapvote", "finished " + this.x1 + " " + this.y1);
+        Log.d("uct.snapvote", "finished " + this.left + " " + this.top);
 
     }
 

@@ -51,9 +51,9 @@ public class GaussianTRF extends ThreadedBaseRegionFilter {
 
     @Override
     public void run() {
-        Log.d("uct.snapvote", "start " + this.x1 + " " + this.y1);
-        for(int y= y1;y< y2;y++) {
-            for(int x= x1;x< x2;x++) {
+        Log.d("uct.snapvote", "start " + this.left + " " + this.top);
+        for(int y= top;y< right;y++) {
+            for(int x= left;x< bottom;x++) {
 
                 double total = 0;
 
@@ -74,6 +74,6 @@ public class GaussianTRF extends ThreadedBaseRegionFilter {
             }
         }
 
-        Log.d("uct.snapvote", "finished " + this.x1 + " " + this.y1);
+        Log.d("uct.snapvote", "finished " + this.left + " " + this.top);
     }
 }

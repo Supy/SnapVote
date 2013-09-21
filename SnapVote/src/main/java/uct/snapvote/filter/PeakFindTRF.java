@@ -31,8 +31,8 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
     public void run() {
         Log.d("uct.snapvote", "Canny edge detection with low peak = "+peakLow+" and high peak = "+peakHigh);
 
-        for(int y= y1;y< y2;y++) {
-            for(int x= x1;x< x2;x++) {
+        for(int y= top;y< right;y++) {
+            for(int x= left;x< bottom;x++) {
 
                 int angle = dirDataInput.get(x,y) & 0xFF;
                 int x1 = x;

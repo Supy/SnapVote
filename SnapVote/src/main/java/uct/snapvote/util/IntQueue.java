@@ -2,9 +2,6 @@ package uct.snapvote.util;
 
 import java.util.NoSuchElementException;
 
-/**
- * Created by Ben on 8/14/13.
- */
 public class IntQueue {
 
     private int[] data;
@@ -19,7 +16,7 @@ public class IntQueue {
         endptr = 0;
     }
 
-    public void add(int x)
+    public void push(int x)
     {
         data[endptr] = x;
 

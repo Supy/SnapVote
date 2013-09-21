@@ -31,7 +31,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
 
     @Override
     public void run(){
-        IntQueue pixelQueue = new IntQueue(42000);
+        IntQueue pixelQueue = new IntQueue(width*height);
 
         for(int y=1;y< height-1;y++)
         {
@@ -44,7 +44,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                 {
                     // mark as visited
                     visitedPixels.set(pixelIndex);
-                    pixelQueue.add(pixelIndex);
+                    pixelQueue.push(pixelIndex);
 
                     int queuePixelIndex;
                     Blob blob = new Blob();
@@ -67,22 +67,22 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                         boolean west = (currentX > 0) ? visitedPixels.get(westIndex) : true;
     
                         if(!north){
-                            pixelQueue.add(northIndex);
+                            pixelQueue.push(northIndex);
                             visitedPixels.set(northIndex);
                         }
                         
                         if(!south){
-                            pixelQueue.add(southIndex);
+                            pixelQueue.push(southIndex);
                             visitedPixels.set(southIndex);
                         }
     
                         if(!east){
-                            pixelQueue.add(eastIndex);
+                            pixelQueue.push(eastIndex);
                             visitedPixels.set(eastIndex);
                         }
     
                         if(!west){
-                            pixelQueue.add(westIndex);
+                            pixelQueue.push(westIndex);
                             visitedPixels.set(westIndex);
                         }
 
