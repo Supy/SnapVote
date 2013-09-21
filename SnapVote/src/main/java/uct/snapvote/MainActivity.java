@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,8 +20,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import uct.snapvote.util.PollListAdapter;
 import uct.snapvote.util.PollManager;
@@ -34,7 +31,6 @@ public class MainActivity extends Activity {
 
     private ListView listPreviousPolls;
     private PollListAdapter previousPollAdapter;
-    private Button btnNewPoll;
     private JSONArray previousPolls;
 
     @Override
@@ -45,7 +41,7 @@ public class MainActivity extends Activity {
 
         // bind views
         listPreviousPolls = (ListView) findViewById(R.id.listPreviousPolls);
-        btnNewPoll = (Button) findViewById(R.id.btnNewPoll);
+        Button btnNewPoll = (Button) findViewById(R.id.btnNewPoll);
 
         // setup list of previous polls
         previousPolls = PollManager.getAllPolls(MainActivity.this);
@@ -70,9 +66,9 @@ public class MainActivity extends Activity {
                                 launchCamera();
                             }
                         }).setNegativeButton("Gallery", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int whichButton) {
-                                launchGallery();
-                            }
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        launchGallery();
+                    }
                 }).show();
             }
         });

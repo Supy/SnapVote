@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import uct.snapvote.ImageByteBuffer;
 import uct.snapvote.util.Blob;
 import uct.snapvote.util.ImageInputStream;
 import uct.snapvote.util.IntQueue;

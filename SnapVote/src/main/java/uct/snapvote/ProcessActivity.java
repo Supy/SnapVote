@@ -22,7 +22,6 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.Date;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 import uct.snapvote.util.DetectedSquare;
-import uct.snapvote.util.ImageInputStream;
 
 public class ProcessActivity extends Activity {
 
@@ -178,9 +176,6 @@ public class ProcessActivity extends Activity {
             android.graphics.Bitmap.Config bitmapConfig = bm.getConfig();
 
             Bitmap bmcpy = bm.copy(bitmapConfig, true);
-
-            int imageHeight = bmcpy.getHeight();
-            int imageWidth = bmcpy.getWidth();
 
             Canvas canvas = new Canvas(bmcpy);
 

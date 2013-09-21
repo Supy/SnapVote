@@ -4,16 +4,11 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;

@@ -7,17 +7,14 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.LightingColorFilter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -26,10 +23,8 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 
 import uct.snapvote.components.BarGraph;
 import uct.snapvote.util.PollManager;

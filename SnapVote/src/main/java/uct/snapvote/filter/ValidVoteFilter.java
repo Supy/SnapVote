@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 
-import uct.snapvote.ImageByteBuffer;
 import uct.snapvote.util.Blob;
 import uct.snapvote.util.BlobSampler;
 import uct.snapvote.util.ImageInputStream;
@@ -51,13 +50,11 @@ public class ValidVoteFilter{
 
         List<Blob> before = blobList;
         List<Blob> after = new ArrayList<Blob>();
-        for(int i=0;i<before.size();i++)
-        {
-            Blob blob = before.get(i);
-            int height = blob.yMax-blob.yMin;
-            int yCenter = (blob.yMax+blob.yMin)/2;
+        for (Blob blob : before) {
+            int height = blob.yMax - blob.yMin;
+            int yCenter = (blob.yMax + blob.yMin) / 2;
 
-            int minH = (int)(((float)yCenter / imageHeight) * 30);
+            int minH = (int) (((float) yCenter / imageHeight) * 30);
 
             if (height > minH) after.add(blob);
         }
@@ -227,8 +224,6 @@ public class ValidVoteFilter{
                     case 3:
                         blob.assignedColour = Color.BLACK;
                         break;
-                    case 4:
-                        return false;
                 }
 
                 return true;

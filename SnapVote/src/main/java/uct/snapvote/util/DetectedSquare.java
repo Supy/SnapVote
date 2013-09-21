@@ -1,6 +1,5 @@
 package uct.snapvote.util;
 
-import android.graphics.Color;
 import android.graphics.Point;
 
 /** DetectedSquare

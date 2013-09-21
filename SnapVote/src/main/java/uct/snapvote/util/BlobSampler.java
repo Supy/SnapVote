@@ -3,8 +3,6 @@ package uct.snapvote.util;
 import java.util.List;
 import java.util.PriorityQueue;
 
-import uct.snapvote.ImageByteBuffer;
-
 /**
  * Created by Justin on 2013/09/03.
  */
@@ -35,8 +33,6 @@ public class BlobSampler {
 
     public static PriorityQueue<Sample> createSamples(List<Blob> blobList, int imageWidth, int imageHeight){
         PriorityQueue<Sample> samples = new PriorityQueue<Sample>(blobList.size() * 8);
-
-        int maxPixelIndex = (imageWidth * imageHeight)-1;
 
         for(Blob blob : blobList){
 

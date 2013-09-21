@@ -11,7 +11,6 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
 
     private ImageByteBuffer dirDataInput;
     private int peakLow, peakHigh;
-    private final byte bytePeakMax = (byte) 255;
     private boolean[][] peakList;
 
     public PeakFindTRF(ImageByteBuffer source, ImageByteBuffer dirDataInput, int peakLow, int peakHigh) {
@@ -64,6 +63,7 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
 
                 if(gradient > 0 && gradient > (source.get(x1, y1) & 0xFF) && gradient > (source.get(x2, y2) & 0xFF)) {
                     if(gradient > peakHigh){        // High threshold, indicating definite peak
+                        byte bytePeakMax = (byte) 255;
                         source.set(x, y, bytePeakMax);
                         peakList[y][x] = true;
                     }else if(gradient < peakLow){  // Potential peak
