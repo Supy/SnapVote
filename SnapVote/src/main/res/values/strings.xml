@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Snap Vote</string>
     <string name="action_settings">Settings</string>
     <string name="action_delete_saves">Delete Saved Polls</string>
+    <string name="action_export">Export Poll to image</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_preprocess">Snap Vote</string>
     <string name="title_activity_process">Processing</string>

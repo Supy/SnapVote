@@ -1,6 +1,7 @@
 package uct.snapvote.components;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -19,6 +20,8 @@ public class BarGraph extends View {
     private Rect size = null;
 
     private List<Bar> bardata;
+    private String title;
+    private Bitmap graphimg;
 
     Paint barLabelPaint;
     Paint barDomainLabelPaint;
@@ -26,6 +29,7 @@ public class BarGraph extends View {
     public BarGraph(Context context, AttributeSet attrs) {
         super(context, attrs);
         bardata = new ArrayList<Bar>();
+        title = "Untitled";
         setupDrawingTools();
     }
 
@@ -49,6 +53,7 @@ public class BarGraph extends View {
 
     public void clear() {
         bardata.clear();
+        title = "Untitled";
     }
 
     public List<Bar> getData() {
@@ -67,14 +72,27 @@ public class BarGraph extends View {
         barDomainLabelPaint.setTextAlign(Paint.Align.CENTER);
     }
 
-    /* onDraw
-    The actual draw method.
-    Called automatically when view requires repainting, force using invalidate()
-     */
-    public void onDraw(Canvas canvas) {
+    public void setTitle(String s)
+    {
+        title = s;
+    }
+
+    public String getTitle()
+    {
+        return title;
+    }
+
+    // Deffered draw method. Draws first onto a bitmap
+    // this is so that we can export this bitmap later.
+    private void drawToBitmap()
+    {
+        Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+        graphimg = Bitmap.createBitmap(size.width(), size.height(), conf);
+
+        Canvas canvas = new Canvas(graphimg);
 
         // calculate size of graph area
-        Rect innerRect = new Rect( 25, 25, size.width()-25, size.height()-75 );
+        Rect innerRect = new Rect( 25, 100, size.width()-25, size.height()-75 );
 
         // mutable paint object
         Paint p = new Paint();
@@ -88,6 +106,12 @@ public class BarGraph extends View {
         p.setStrokeWidth(2);
         p.setStyle(Paint.Style.STROKE);
         canvas.drawRect(size, p);
+
+        // draw title at the top
+        p.setTextSize(45);
+        p.setStyle(Paint.Style.FILL);
+        p.setColor(Color.BLACK);
+        canvas.drawText(title, 25, 65, p);
 
         if(bardata.size() > 0) {
 
@@ -163,7 +187,20 @@ public class BarGraph extends View {
 
     }
 
+    /* onDraw
+    The actual draw method.
+    Called automatically when view requires repainting, force using invalidate()
+     */
+    public void onDraw(Canvas canvas) {
+        drawToBitmap();
+        canvas.drawBitmap(graphimg, 0,0,new Paint());
+    }
 
+
+    public Bitmap getBitmap()
+    {
+        return graphimg;
+    }
 
 
     // ================================================================
