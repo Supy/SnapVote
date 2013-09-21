@@ -1,45 +1,52 @@
 package uct.snapvote;
 
-import android.graphics.Bitmap;
-
-/**
- * Created by Ben on 8/3/13.
- */
-public class ImageByteBuffer {
-
+public class ImageByteBuffer
+{
+    /** Private Variables **/
+    // height of the data array (y coordinate)
     private int height;
+    // width of the data array (x coordinate)
     private int width;
-    private byte[][] data;
+    // the backing byte array
+    private byte[][] pixelData;
 
+    /** [Constructor]
+     * Initialise empty data array with the given size
+     * @param width Width of the image.
+     * @param height Heigth of the image.
+     */
     public ImageByteBuffer(int width, int height) {
-        data = new byte[height][width];
+        pixelData = new byte[height][width];
         this.width = width;
         this.height = height;
     }
 
-    // ACCESSORS
-    public int getWidth() {return width;}
-    public int getHeight() {return height;}
-    public byte get(int x, int y) {return data[y][x];}
-    public void set(int x, int y, byte value) {data[y][x] = value;}
+    /** Accessors **/
+    public int getWidth()
+    {
+        return width;
+    }
 
-    // UNSAFE ACCESSOR
-    public byte[][] getRealData() {return data;}
+    public int getHeight()
+    {
+        return height;
+    }
 
-    // BITMAAAAAAAAAAAAAAAAAAP
-    //  Not really necessary as the app doesn't need to output anything
-    public Bitmap createBitmap() {
-        Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);  // should attempt to keep all colour data
+    public byte get(int x, int y)
+    {
+        return pixelData[y][x];
+    }
 
-        for(int y = 0;y<height;y++) {
-            for(int x = 0;x<width;x++) {
-                int g = data[y][x] & 0xFF;
-                int gg = 0xff000000 | g | g << 8 | g << 16;
-                bm.setPixel(x,y, gg);
-            }
-        }
-
-        return bm;
+    /**
+     * Set the specified pixel to the given value. Be careful of
+     * automatic byte casting.
+     * @param x X Coordinate.
+     * @param y Y Coordinate.
+     * @param value Byte value.
+     */
+    public void set(int x, int y, byte value)
+    {
+        pixelData[y][x] = value;
     }
 
 }
