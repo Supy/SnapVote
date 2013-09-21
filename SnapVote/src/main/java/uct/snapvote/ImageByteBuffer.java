@@ -1,5 +1,11 @@
 package uct.snapvote;
 
+import android.graphics.Bitmap;
+
+/**
+ * A 2 dimensional byte array object. Accessors provide easy access to
+ * width, height, and pixel data.
+ */
 public class ImageByteBuffer
 {
     /** Private Variables **/
@@ -47,6 +53,28 @@ public class ImageByteBuffer
     public void set(int x, int y, byte value)
     {
         pixelData[y][x] = value;
+    }
+
+    /**
+     * Create a greyscale bitmap of the byte array. A value of 0 indicates a black pixel
+     * while a value of 255 indicates white. Used during debugging.
+     * @return A full resolution greyscale bitmap of the data.
+     */
+    public Bitmap createBitmap()
+    {
+        // Empty bitmap
+        Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        for(int y=0;y<height;y++)
+        {
+            for(int x=0;x<width;x++)
+            {
+                int level = pixelData[y][x] & 0xff;
+                // full alpha + level for red green and blue
+                int colour = 0xff000000 | level | level << 8 | level << 16;
+                bm.setPixel(x,y, colour);
+            }
+        }
+        return bm;
     }
 
 }
