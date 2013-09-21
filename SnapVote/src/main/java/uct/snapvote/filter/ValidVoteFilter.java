@@ -53,7 +53,6 @@ public class ValidVoteFilter{
         List<Blob> after = new ArrayList<Blob>();
         for(int i=0;i<before.size();i++)
         {
-            Log.d("uct.snapvote",""+i);
             Blob blob = before.get(i);
             int height = blob.yMax-blob.yMin;
             int yCenter = (blob.yMax+blob.yMin)/2;
