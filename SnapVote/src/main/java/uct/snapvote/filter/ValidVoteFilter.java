@@ -39,12 +39,33 @@ public class ValidVoteFilter{
         this.source = source;
 
         try{
+            removeInvalidSizedBlobs();
             getPixelSamples();
             colourizeSamples();
             classifyBlobs();
         }catch(IOException e){
             Log.d("uct.snapvote", "Could not colourize pixel samples: "+e.getMessage());
         }
+    }
+
+    private void removeInvalidSizedBlobs()
+    {
+
+        List<Blob> before = blobList;
+        List<Blob> after = new ArrayList<Blob>();
+        for(int i=0;i<before.size();i++)
+        {
+            Log.d("uct.snapvote",""+i);
+            Blob blob = before.get(i);
+            int height = blob.yMax-blob.yMin;
+            int yCenter = (blob.yMax+blob.yMin)/2;
+
+            int minH = (int)(((float)yCenter / source.getHeight()) * 30);
+
+            if (height > minH) after.add(blob);
+        }
+
+        blobList = after;
     }
 
     private void getPixelSamples(){
@@ -81,23 +102,23 @@ public class ValidVoteFilter{
             int sampleX = sample.pixelIndex % imageWidth;
 
             // Can't get neighbours if we're on the edge of a row.
-            if(sampleX == 0)
-                sampleX++;
-            else if(sampleX == imageWidth-1)
-                sampleX--;
+//            if(sampleX == 0)
+//                sampleX++;
+//            else if(sampleX == imageWidth-1)
+//                sampleX--;
+//
+//            // Average each colour component with 2 neighbours.
+//            int colour1 = pixelData[sampleX-1];
+//            int colour2 = pixelData[sampleX];
+//            int colour3 = pixelData[sampleX+1];
+//
+//            int avgR = (((colour1 >> 16) & 255) + ((colour2 >> 16) & 255) + ((colour3 >> 16) & 255))/3;
+//            int avgG = (((colour1 >> 8) & 255) + ((colour2 >> 8) & 255) + ((colour3 >> 8) & 255))/3;
+//            int avgB = ((colour1 & 255) + (colour2 & 255) + (colour3 & 255))/3;
+//
+//            int colour = (avgR << 16) | (avgG << 8) | avgB;
 
-            // Average each colour component with 2 neighbours.
-            int colour1 = pixelData[sampleX-1];
-            int colour2 = pixelData[sampleX];
-            int colour3 = pixelData[sampleX+1];
-
-            int avgR = (((colour1 >> 16) & 255) + ((colour2 >> 16) & 255) + ((colour3 >> 16) & 255))/3;
-            int avgG = (((colour1 >> 8) & 255) + ((colour2 >> 8) & 255) + ((colour3 >> 8) & 255))/3;
-            int avgB = ((colour1 & 255) + (colour2 & 255) + (colour3 & 255))/3;
-
-            int colour = (avgR << 16) | (avgG << 8) | avgB;
-
-            sample.colour = colour;
+            sample.colour = pixelData[sampleX];
         }
     }
 
@@ -122,14 +143,10 @@ public class ValidVoteFilter{
 
     public boolean classifyBlob(Blob blob)
     {
-        int numWhitesOutside = 0;
-        int numInsideSamples = 0;
 
         int totalred = 0;
         int totalgreen = 0;
         int totalblue = 0;
-
-        int valuered, valuegreen, valueblue;
 
         List<Integer> insideSquare = new ArrayList<Integer>();
         List<Integer> whiteBorder = new ArrayList<Integer>();
@@ -147,21 +164,35 @@ public class ValidVoteFilter{
             totalred += (colour >> 16) & 255;
             totalgreen += (colour >> 8) & 255;
             totalblue += colour & 255;
-            numInsideSamples++;
         }
 
+        // calculate average inside colour
+        totalred = totalred/insideSquare.size();
+        totalgreen = totalgreen/insideSquare.size();
+        totalblue = totalblue/insideSquare.size();
+
+        // check colour consistancies
+        float tdistance = 0;
+        for(Integer colour : insideSquare)
+        {
+            int red = (colour >> 16) & 255;
+            int green = (colour >> 8) & 255;
+            int blue = colour & 255;
+
+            tdistance += colourDistance(red, green, blue, totalred, totalgreen, totalblue);
+        }
+        tdistance /= insideSquare.size();
+
+
+        int numWhitesOutside = 0;
         for(Integer colour : whiteBorder)
         {
             float[] hsv = new float[3];
             Color.colorToHSV(colour, hsv);
 
-            if(hsv[2] >= 0.75 && hsv[1] <= 0.16) numWhitesOutside++;
+            if(hsv[2] >= 0.65 && hsv[1] <= 0.13) numWhitesOutside++;
         }
 
-        // calculate average inside colour
-        totalred = totalred/numInsideSamples;
-        totalgreen = totalgreen/numInsideSamples;
-        totalblue = totalblue/numInsideSamples;
 
         // A blob is considered a valid vote if:
         //  - number of white outside samples >= 2 (i.e. on a white page)
@@ -169,43 +200,68 @@ public class ValidVoteFilter{
         //  - to be classified as a colour, the average of all samples taken inside the blob must fall within range
 
         // Colours
-        if(numWhitesOutside >= 2){
+        if(numWhitesOutside >= 4){
 
-            int colour = Color.rgb(totalred, totalgreen, totalblue);
+            if (tdistance < 35)
+            {
+                float[] colourDistances = new float[4];
+                colourDistances[0] = colourDistance(totalred, totalgreen, totalblue, 255,60,60);
+                colourDistances[1] = colourDistance(totalred, totalgreen, totalblue, 40,150,100);
+                colourDistances[2] = colourDistance(totalred, totalgreen, totalblue, 50,70,200);
+                colourDistances[3] = colourDistance(totalred, totalgreen, totalblue, 37,37,37) + monochromeDistance(totalred, totalgreen, totalblue);
 
-            float[] hsv = new float[3];
-            Color.colorToHSV(colour, hsv);
+                int imin = 1;
+                for(int i=0;i<4;i++)
+                {
+                    if(colourDistances[i] < colourDistances[imin]) imin = i;
+                }
 
-            float h = hsv[0];
-            float s = hsv[1]*100;
-            float v = hsv[2]*100;
+                switch (imin)
+                {
+                    case 0:
+                        blob.assignedColour = Color.RED;
+                        break;
+                    case 1:
+                        blob.assignedColour = Color.GREEN;
+                        break;
+                    case 2:
+                        blob.assignedColour = Color.BLUE;
+                        break;
+                    case 3:
+                        blob.assignedColour = Color.BLACK;
+                        break;
+                    case 4:
+                        return false;
+                }
 
-            if((h <= 20 || h >= 340) && s >= 50 && v >= 63){
-                blob.assignedColour = Color.RED;
-            }else if(h >= 100 && h <= 164 && s >= 20){
-                blob.assignedColour = Color.GREEN;
-            }else if(h >= 210 && h < 270 && s >= 55){
-                blob.assignedColour = Color.BLUE;
-            }else if(isBlack(totalred, totalgreen, totalblue)){
-                blob.assignedColour = Color.BLACK;
-            }else{
-                return false;
+                return true;
             }
-        }else{
-            return false;
         }
-        return true;
-    }
-
-    public boolean isBlack(int r, int g, int b)
-    {
-        int av = (r+g+b) / 3;
-        if (Math.abs(r-av) > 10) return false;
-        if (Math.abs(g-av) > 10) return false;
-        if (Math.abs(b-av) > 10) return false;
-        if (av < 100) return  true;
         return false;
     }
+
+    public float colourDistance(int r1, int g1, int b1, int r2, int g2, int b2)
+    {
+
+        int d1 = r1-r2;
+        int d2 = g1-g2;
+        int d3 = b1-b2;
+
+        float r = (float)Math.cbrt(Math.abs(d1*d1*d1) + Math.abs(d2*d2*d2) + Math.abs(d3*d3*d3));
+
+        //Log.d("uct.snapvote", String.format("R: %d %d, G: %d, %d B: %d %d = %f", r1, r2, g1, g2, b1, b2, r ));
+        return r;
+    }
+
+    public float monochromeDistance(int r, int g, int b)
+    {
+        int av = (r+g+b) / 3;
+        if (Math.abs(r-av) > 13) return 255;
+        if (Math.abs(g-av) > 12) return 255;
+        if (Math.abs(b-av) > 13) return 255;
+        return av-180;
+    }
+
 
 
 }

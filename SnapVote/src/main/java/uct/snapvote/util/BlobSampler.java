@@ -45,50 +45,86 @@ public class BlobSampler {
             int centerY = (blob.yMax + blob.yMin)/2;
             int blobHalfWidth = (blob.xMax - blob.xMin)/2;
             int blobHalfHeight = (blob.yMax - blob.yMin)/2;
-            int widthPercentage = (int)(blobHalfWidth * PERCENTAGE_OFFSET);
-            int heightPercentage = (int)(blobHalfHeight * PERCENTAGE_OFFSET);
 
-            // -- Outside samples
-            int oTopIndex = ((centerY - blobHalfHeight - heightPercentage - PIXEL_OFFSET) * imageWidth) + centerX;
-            if(oTopIndex >= 0){
-                Sample oTop = new Sample(oTopIndex, blob, false);
-                samples.add(oTop);
-                blob.attachSample(oTop);
+            int expandsize = Math.min(Math.min(blob.xMax-blob.xMin, blob.yMax-blob.yMin) / 5 + 2, 6);
 
-                drawLine(centerX, centerX, (centerY - blobHalfHeight - heightPercentage - PIXEL_OFFSET), centerY, source, (byte) 255);
+            int top = blob.yMin-expandsize;
+            int bottom = blob.yMax+expandsize;
+            int left = blob.xMin-expandsize;
+            int right = blob.xMax+expandsize;
+            int middle = centerY;
+            int center = centerX;
+
+
+            if (top > 0)
+            {
+                // topleft
+                if (left > 0)
+                {
+                    Sample sample = new Sample((top * imageWidth + left), blob, false);
+                    samples.add(sample);
+                    blob.attachSample(sample);
+                }
+
+                // topcenter
+                {
+                    Sample sample = new Sample((top * imageWidth + center), blob, false);
+                    samples.add(sample);
+                    blob.attachSample(sample);
+                }
+
+                // topright
+                if (right < imageWidth)
+                {
+                    Sample sample = new Sample((top * imageWidth + right), blob, false);
+                    samples.add(sample);
+                    blob.attachSample(sample);
+                }
             }
 
-            int oBottomIndex = ((centerY + blobHalfHeight + heightPercentage + PIXEL_OFFSET) * imageWidth) + centerX;
-            if(oBottomIndex <= maxPixelIndex){
-                Sample oBottom = new Sample(oBottomIndex, blob, false);
-                samples.add(oBottom);
-                blob.attachSample(oBottom);
-
-                drawLine(centerX, centerX, centerY, (centerY + blobHalfHeight + heightPercentage + PIXEL_OFFSET), source, (byte) 255);
+            // middleleft
+            if(left > 0)
+            {
+                Sample sample = new Sample((middle * imageWidth + left), blob, false);
+                samples.add(sample);
+                blob.attachSample(sample);
             }
 
-            int oLeftOffset = centerX - blobHalfWidth - widthPercentage - PIXEL_OFFSET;
-            if(oLeftOffset >= 0){
-                int oLeftIndex = (centerY * imageWidth) + oLeftOffset;
-                Sample oLeft = new Sample(oLeftIndex, blob, false);
-                samples.add(oLeft);
-                blob.attachSample(oLeft);
-
-                drawLine(oLeftOffset, centerX, centerY, centerY, source, (byte) 160);
+            // middleright
+            if(right < imageWidth)
+            {
+                Sample sample = new Sample((middle * imageWidth + right), blob, false);
+                samples.add(sample);
+                blob.attachSample(sample);
             }
 
-            int oRightOffset = centerX + blobHalfWidth + widthPercentage + PIXEL_OFFSET;
-            if(oRightOffset < imageWidth){
-                int oRightIndex = (centerY * imageWidth) + oRightOffset;
-                Sample oRight = new Sample(oRightIndex, blob, false);
-                samples.add(oRight);
-                blob.attachSample(oRight);
+            if(bottom < imageHeight)
+            {
+                // bottomleft
+                if (left > 0)
+                {
+                    Sample sample = new Sample((bottom * imageWidth + left), blob, false);
+                    samples.add(sample);
+                    blob.attachSample(sample);
+                }
 
-                drawLine(centerX, oRightOffset, centerY, centerY, source, (byte) 160);
+                // bottomcenter
+                {
+                    Sample sample = new Sample((bottom * imageWidth + center), blob, false);
+                    samples.add(sample);
+                    blob.attachSample(sample);
+                }
+
+                // bottomright
+                if(right < imageWidth)
+                {
+                    Sample sample = new Sample((bottom * imageWidth + right), blob, false);
+                    samples.add(sample);
+                    blob.attachSample(sample);
+                }
             }
-            // --
 
-            // take 5 x 5 samples
+            // take 5 x 5 samples inside
 
             int widthPercentage2 = (int)(blobHalfWidth * 0.6);
             int heightPercentage2 = (int)(blobHalfHeight * 0.6);
@@ -120,42 +156,15 @@ public class BlobSampler {
                 }
             }
 
-/*
-            // -- Inside samples
-            int iTopIndex = ((centerY - heightPercentage - INSIDE_PIXEL_OFFSET) * imageWidth) + centerX;
-            Sample iTop = new Sample(iTopIndex, blob, true);
-            samples.add(iTop);
-            blob.attachSample(iTop);
-            */
 
-            drawLine(centerX, centerX, centerY - heightPercentage - INSIDE_PIXEL_OFFSET, centerY, source, (byte) 255);
-/*
-            int iBottomIndex = ((centerY + heightPercentage + INSIDE_PIXEL_OFFSET) * imageWidth) + centerX;
-            Sample iBottom = new Sample(iBottomIndex, blob, true);
-            samples.add(iBottom);
-            blob.attachSample(iBottom);
-            */
 
-            drawLine(centerX, centerX, centerY, centerY + heightPercentage + INSIDE_PIXEL_OFFSET, source, (byte) 255);
+        }
 
-            /*
-            int iLeftIndex = (centerY * imageWidth) + centerX - widthPercentage - INSIDE_PIXEL_OFFSET;
-            Sample iLeft = new Sample(iLeftIndex, blob, true);
-            samples.add(iLeft);
-            blob.attachSample(iLeft);
-            */
-
-            drawLine(centerX - widthPercentage - INSIDE_PIXEL_OFFSET, centerX, centerY, centerY, source, (byte) 255);
-
-            /*
-            int iRightIndex = (centerY * imageWidth) + centerX + widthPercentage + INSIDE_PIXEL_OFFSET;
-            Sample iRight = new Sample(iRightIndex, blob, true);
-            samples.add(iRight);
-            blob.attachSample(iRight);
-*/
-            drawLine(centerX, centerX + widthPercentage + INSIDE_PIXEL_OFFSET, centerY, centerY, source, (byte) 255);
-            // --
-
+        for (Sample s : samples)
+        {
+            int x = s.pixelIndex % imageWidth;
+            int y = s.pixelIndex / imageWidth;
+            source.set(x,y,(byte)255);
         }
 
         return samples;
