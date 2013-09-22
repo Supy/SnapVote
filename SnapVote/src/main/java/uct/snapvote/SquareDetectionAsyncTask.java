@@ -417,6 +417,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
         processActivity.pbMainProgress.incrementProgressBy(Integer.parseInt(values[0]));  // hax ;)
         if (values.length > 1) {
             processActivity.tvConsole.append(values[1] + "\n");
+            Log.d("uct.snapvote", values[1]);
         }
     }
 }
