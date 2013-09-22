@@ -4,14 +4,23 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * Created by Justin on 2013/09/03.
+ * This Blob Sampler class is used to create the pixel samples for each blob in the blob list
+ * based on the Blob's position and size.
  */
 public class BlobSampler {
 
+    /**
+     * A Sample is a pixel that must be fetched from the coloured image before classification
+     * can take place.
+     */
     public static class Sample implements Comparable<Sample>{
+        // attached blob
         public Blob parent;
+        // calculated pixel index for 1D array
         public int pixelIndex;
+        // identified colour
         public int colour;
+        // is it inside or outside the sample
         public boolean insideSample;
 
         public Sample(int pi, Blob p, boolean iS){
@@ -26,8 +35,15 @@ public class BlobSampler {
         }
     }
 
+    /**
+     * Create a priority queue of Samples given a list of blobs.
+     * @param blobList Input
+     * @param imageWidth Image width
+     * @param imageHeight Image height
+     * @return A priority queue of samples, ordered by 1D pixel index
+     */
     public static PriorityQueue<Sample> createSamples(List<Blob> blobList, int imageWidth, int imageHeight){
-        PriorityQueue<Sample> samples = new PriorityQueue<Sample>(blobList.size() * 8);
+        PriorityQueue<Sample> samples = new PriorityQueue<Sample>(blobList.size() * 30);
 
         for(Blob blob : blobList){
 

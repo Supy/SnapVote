@@ -14,7 +14,6 @@ import android.graphics.Point;
  *
  * Designed to be IMMUTABLE. Can't change values once initialised.
  *
- * Created by Ben on 2013/09/03.
  */
 public class DetectedSquare {
 
