@@ -13,7 +13,6 @@ package uct.snapvote.util;
  *
  * MAX is 1020 because 255 + 2*255 + 255 = 1020, so array must cover -1020 to 1020
  *
- * Created by Ben on 2013/09/02.
  */
 public class SobelAngleClassifier {
 

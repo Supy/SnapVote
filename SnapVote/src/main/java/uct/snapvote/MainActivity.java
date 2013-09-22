@@ -26,6 +26,7 @@ import uct.snapvote.util.PollManager;
 
 public class MainActivity extends Activity {
 
+    // intent request constants
     private static final int CAMERA_IMAGE_REQUEST_CODE = 101;
     private static final int GALLERY_IMAGE_REQUEST_CODE = 102;
 

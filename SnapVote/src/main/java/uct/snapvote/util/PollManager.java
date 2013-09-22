@@ -16,12 +16,20 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
 /**
- * Created by Justin on 2013/09/15.
+ * The PollManager provides an interface to load and save a list of polls from the polldata
+ * json file. We chose to use JSON because of the built-in JSON support and to avoid
+ * the complications for complex string parsing.
  */
 public class PollManager {
 
     private final static String DATA_FILE = "polldata.json";
 
+    /**
+     * Save a poll to the end of the file
+     * @param title The title of the poll
+     * @param entry The JSONObject containing the properties of the poll
+     * @param a The source activity, needed in order to write to disk.
+     */
     public static void saveResult(String title, JSONObject entry, Activity a){
         try{
             entry.put("title", title);
@@ -32,6 +40,10 @@ public class PollManager {
         }
     }
 
+    /**
+     * Write a string line to the end of the polldata file.
+     * @throws IOException
+     */
     private static void writeData(String data, Activity a) throws IOException{
         FileOutputStream fOut = a.openFileOutput(DATA_FILE, Context.MODE_APPEND) ;
         OutputStreamWriter osw = new OutputStreamWriter(fOut) ;
@@ -49,6 +61,10 @@ public class PollManager {
         osw.close() ;
     }
 
+    /**
+     * Get an Array of all polls from the polldata file.
+     * @return A JSONArray as it is read from the file.
+     */
     public static JSONArray getAllPolls(Activity a){
         JSONArray entries = new JSONArray();
 

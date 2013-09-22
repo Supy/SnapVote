@@ -3,6 +3,9 @@ package uct.snapvote;
 import android.preference.PreferenceFragment;
 import android.os.Bundle;
 
+/**
+ * Configurable parameters pulled from the prferences XML file
+ */
 public class PreferencesFragment extends PreferenceFragment {
 
     @Override
