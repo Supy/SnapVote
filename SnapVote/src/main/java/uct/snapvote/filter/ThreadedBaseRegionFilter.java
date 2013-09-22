@@ -1,6 +1,6 @@
 package uct.snapvote.filter;
 
-import uct.snapvote.ImageByteBuffer;
+import uct.snapvote.util.ImageByteBuffer;
 
 public abstract class ThreadedBaseRegionFilter extends BaseRegionFilter implements Runnable {
 

@@ -22,6 +22,7 @@ import uct.snapvote.filter.ThreadedBaseRegionFilter;
 import uct.snapvote.filter.ValidVoteFilter;
 import uct.snapvote.util.Blob;
 import uct.snapvote.util.DebugTimer;
+import uct.snapvote.util.ImageByteBuffer;
 import uct.snapvote.util.ImageInputStream;
 import uct.snapvote.util.DetectedSquare;
 import uct.snapvote.util.SobelAngleClassifier;

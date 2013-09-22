@@ -21,7 +21,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import uct.snapvote.util.PollListAdapter;
+import uct.snapvote.components.PollListAdapter;
 import uct.snapvote.util.PollManager;
 
 public class MainActivity extends Activity {

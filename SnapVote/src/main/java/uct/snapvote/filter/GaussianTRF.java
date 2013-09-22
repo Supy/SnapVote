@@ -2,7 +2,7 @@ package uct.snapvote.filter;
 
 import android.util.Log;
 
-import uct.snapvote.ImageByteBuffer;
+import uct.snapvote.util.ImageByteBuffer;
 
 /**
  * Created by Ben on 8/7/13.

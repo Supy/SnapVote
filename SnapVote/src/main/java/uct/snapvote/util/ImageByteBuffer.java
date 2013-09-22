@@ -1,4 +1,4 @@
-package uct.snapvote;
+package uct.snapvote.util;
 
 import android.graphics.Bitmap;
 

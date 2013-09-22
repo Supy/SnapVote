@@ -1,4 +1,4 @@
-package uct.snapvote.util;
+package uct.snapvote.components;
 
 import android.content.Context;
 import android.view.LayoutInflater;
