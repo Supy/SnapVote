@@ -5,7 +5,7 @@ import android.util.Log;
 import uct.snapvote.util.ImageByteBuffer;
 
 /**
- * Created by Ben on 8/7/13.
+ * Peak finder, can be run multithreaded.
  */
 public class PeakFindTRF extends ThreadedBaseRegionFilter {
 
@@ -13,17 +13,28 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
     private int peakLow, peakHigh;
     private boolean[][] peakList;
 
-    public PeakFindTRF(ImageByteBuffer source, int x1, int y1, int x2, int y2, ImageByteBuffer dirDataInput, int peakLow, int peakHigh, boolean[][] peakList) {
-        super(source, null, x1, y1, x2, y2);
+    /**
+     * Constructor
+     * @param dirDataInput Peak direction angle from the Sobel filter
+     * @param peakLow Low peak threshold parameter, Below this value, peaks are discarded.
+     * @param peakHigh High peak threshold parameter. Above this value, peaks are definite.
+     * @param peakList Output object
+     */
+    public PeakFindTRF(ImageByteBuffer source, int left, int top, int right, int bottom, ImageByteBuffer dirDataInput, int peakLow, int peakHigh, boolean[][] peakList) {
+        super(source, null, left, top, right, bottom);
         this.dirDataInput = dirDataInput;
         this.peakLow = peakLow;
         this.peakHigh = peakHigh;
         this.peakList = peakList;
     }
 
+    /**
+     * Run the algorithm on the sobel buffers
+     */
     public void run() {
         Log.d("uct.snapvote", "Canny edge detection with low peak = "+peakLow+" and high peak = "+peakHigh);
 
+        // loop through all pixels
         for(int y= top;y< right;y++) {
             for(int x= left;x< bottom;x++) {
 
@@ -52,8 +63,10 @@ public class PeakFindTRF extends ThreadedBaseRegionFilter {
                     y2--;
                 }
 
+                // get peak strength
                 int gradient = source.get(x,y) & 0xFF;
 
+                // must be greater than neighbours
                 if(gradient > 0 && gradient > (source.get(x1, y1) & 0xFF) && gradient > (source.get(x2, y2) & 0xFF)) {
                     if(gradient > peakHigh){        // High threshold, indicating definite peak
                         byte bytePeakMax = (byte) 255;
