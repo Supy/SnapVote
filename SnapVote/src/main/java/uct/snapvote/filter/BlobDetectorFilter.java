@@ -11,31 +11,37 @@ import uct.snapvote.util.ImageInputStream;
 import uct.snapvote.util.IntQueue;
 
 /**
- * Created by Justin on 2013/08/11.
+ * Blob detection algorithm. Uses a one dimensional BitSet representing the two dimensional buffer
+ * of peaks in order to run a breath-first-search. A custom IntQueue is used to avoid GC overheard.
+ * Once the algorithm has completed, getBlobList() returns the list of detected regions.
  *
  */
-public class BlobDetectorFilter extends BaseRegionFilter {
+public class BlobDetectorFilter {
 
     private BitSet visitedPixels;
     private int width;
     private int height;
-    private List<Blob> blobs;
 
-    public BlobDetectorFilter(BitSet pixelBitset, ImageInputStream imageInputStream){
-        super(null, null,0,0,imageInputStream.width-1, imageInputStream.height-1);
+    // constructor, set source and destination to null since it does not need image buffers.
+    public BlobDetectorFilter(BitSet pixelBitset, int width, int height){
         this.visitedPixels = pixelBitset;
-        this.width = imageInputStream.width;
-        this.height = imageInputStream.height;
-        this.blobs = new ArrayList<Blob>();
+        this.width = width;
+        this.height = height;
     }
 
-    @Override
-    public void run(){
+    /**
+     * Run the blob detection algorithm on the BitSet. Use width and height as the image dimensions
+     * @return A list of blob regions.
+     */
+    public List<Blob> process(){
+
+        List<Blob> blobs = new ArrayList<Blob>();
+
         IntQueue pixelQueue = new IntQueue(42000);
 
-        for(int y=1;y< height-1;y++)
+        for(int y = 1; y < height - 1; y++)
         {
-            for(int x=1;x< width-1;x++)
+            for(int x = 1; x < width - 1; x++)
             {
                 int pixelIndex = y * width + x;
 
@@ -65,7 +71,8 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                         boolean south = (currentY < height-1) ? visitedPixels.get(southIndex) : true;
                         boolean east = (currentX < width-1) ? visitedPixels.get(eastIndex) : true;
                         boolean west = (currentX > 0) ? visitedPixels.get(westIndex) : true;
-    
+
+                        //expand to neighbouring pixels if possible
                         if(!north){
                             pixelQueue.push(northIndex);
                             visitedPixels.set(northIndex);
@@ -86,6 +93,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
                             visitedPixels.set(westIndex);
                         }
 
+                        // add the current pixel to the current blob
                         blob.addPixel(queuePixelIndex % width, queuePixelIndex / width);
                     }
                     
@@ -96,9 +104,8 @@ public class BlobDetectorFilter extends BaseRegionFilter {
         }
 
         Log.d("uct.snapvote", "Blobs: "+blobs.size());
-    }
 
-    public List<Blob> getBlobList(){
         return blobs;
     }
+
 }

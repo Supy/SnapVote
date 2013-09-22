@@ -84,21 +84,27 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             buffer1 = new ImageByteBuffer(buffer2.getWidth(), buffer2.getHeight());
             runErosionFilter(buffer2, buffer1);
 
+            // Clear buffers
+            buffer2 = null; buffer3 = null;
+            System.gc();
+
             // don't need colours anymore, convert to bitset
             BitSet visitedPixels = ConvertToBitSet(buffer1);
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
-            // == Garbage Collection - set to null to trigger garbage collection and free some memory
-            buffer1 = null; buffer2 = null; buffer3 = null;
-            System.gc();
 
             // 4. == Blob Detection
-            BlobDetectorFilter bdf = new BlobDetectorFilter(visitedPixels, imageInputStream);
-            bdf.run();
+            BlobDetectorFilter bdf = new BlobDetectorFilter(visitedPixels, buffer1.getWidth(), buffer1.getHeight());
+
+            // Clear buffers
+            buffer1 = null;
+            System.gc();
+
+            List<Blob> blobList = bdf.process();
             publishProgress("39", "Blob Detect: " + timer.toStringSplit());timer.split();
 
             // 5. == Blob Filtering
-            ValidVoteFilter vvf = new ValidVoteFilter(bdf.getBlobList(), imageInputStream);
+            ValidVoteFilter vvf = new ValidVoteFilter(blobList, imageInputStream);
             publishProgress("9", "Valid Vote Filter: " + timer.toStringSplit()); timer.split();
             publishProgress("1", "Total Load & Process Time: " + timer.toStringTotal());
 
