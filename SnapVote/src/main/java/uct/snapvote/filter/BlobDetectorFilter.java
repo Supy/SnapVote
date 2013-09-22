@@ -31,7 +31,7 @@ public class BlobDetectorFilter extends BaseRegionFilter {
 
     @Override
     public void run(){
-        IntQueue pixelQueue = new IntQueue(width*height);
+        IntQueue pixelQueue = new IntQueue(42000);
 
         for(int y=1;y< height-1;y++)
         {
