@@ -12,12 +12,6 @@ public class GaussianTRF extends ThreadedBaseRegionFilter {
     private int radius;
     private double[][] gaussian;
 
-
-    public GaussianTRF(ImageByteBuffer source, ImageByteBuffer destination, int blurradius) {
-        super(source, destination);
-        setBlurRadius(blurradius);
-    }
-
     public GaussianTRF(ImageByteBuffer source, ImageByteBuffer destination, int x1, int y1, int x2, int y2, int blurradius) {
         super(source, destination, x1, y1, x2, y2);
         setBlurRadius(blurradius);

@@ -54,27 +54,4 @@ public class ImageByteBuffer
     {
         pixelData[y][x] = value;
     }
-
-    /**
-     * Create a greyscale bitmap of the byte array. A value of 0 indicates a black pixel
-     * while a value of 255 indicates white. Used during debugging.
-     * @return A full resolution greyscale bitmap of the data.
-     */
-    public Bitmap createBitmap()
-    {
-        // Empty bitmap
-        Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        for(int y=0;y<height;y++)
-        {
-            for(int x=0;x<width;x++)
-            {
-                int level = pixelData[y][x] & 0xff;
-                // full alpha + level for red green and blue
-                int colour = 0xff000000 | level | level << 8 | level << 16;
-                bm.setPixel(x,y, colour);
-            }
-        }
-        return bm;
-    }
-
 }

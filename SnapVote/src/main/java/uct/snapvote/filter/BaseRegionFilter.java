@@ -7,15 +7,6 @@ public abstract class BaseRegionFilter {
     protected ImageByteBuffer source, destination;
     protected int left, top, right, bottom;
 
-    public BaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination) {
-        this.source = source;
-        this.destination = destination;
-        this.right = source.getHeight();
-        this.bottom = source.getWidth();
-        this.left = 0;
-        this.top = 0;
-    }
-
     public BaseRegionFilter(ImageByteBuffer source, ImageByteBuffer destination, int left, int top, int bottom, int right) {
         this.source = source;
         this.destination = destination;

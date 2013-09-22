@@ -209,12 +209,6 @@ public class BarGraph extends View {
         public String label;
         public int colour;
 
-        public Bar(double v, String l) {
-            value = v;
-            label = l;
-            colour = Color.GRAY;
-        }
-
         public Bar(double v, String l, int c) {
             value = v;
             label = l;

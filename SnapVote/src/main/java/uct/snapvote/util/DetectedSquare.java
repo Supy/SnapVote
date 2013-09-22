@@ -30,12 +30,6 @@ public class DetectedSquare {
         colour = c;
     }
 
-    public DetectedSquare(Point tl, Point br, int c) {
-        topleft = new Point(tl);
-        bottomright = new Point(br);
-        colour = c;
-    }
-
     // ACCESSORS
     // - Colour
     public int Colour() {
@@ -43,14 +37,6 @@ public class DetectedSquare {
     }
 
     // - Position
-    public Point TopLeft() {
-        return topleft;
-    }
-
-    public Point BottomRight() {
-        return bottomright;
-    }
-
     public int Left() {
         return topleft.x;
     }
@@ -66,10 +52,4 @@ public class DetectedSquare {
     public int Bottom() {
         return bottomright.y;
     }
-
-
-
-
-
-
 }

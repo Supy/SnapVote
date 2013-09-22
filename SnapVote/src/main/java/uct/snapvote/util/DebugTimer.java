@@ -6,22 +6,15 @@ import android.util.Log;
  * Created by Ben on 8/4/13.
  */
 public class DebugTimer {
-    long starttime, splittime, endtime;
+    long starttime, splittime;
 
     public DebugTimer(){
         starttime = System.currentTimeMillis();
         splittime = starttime;
     }
 
-
-
     public void split() {
         splittime = System.currentTimeMillis();
-    }
-
-    public void Logd(String name) {
-
-        Log.d("uct.snapvote", "Timer: " + name + " : " + this.toString() );
     }
 
     long splitMilliseconds()

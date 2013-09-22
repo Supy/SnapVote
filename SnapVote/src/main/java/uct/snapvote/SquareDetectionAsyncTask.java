@@ -88,7 +88,7 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
             BitSet visitedPixels = ConvertToBitSet(buffer1);
             publishProgress("19", "Canny Edge Detection: " + timer.toStringSplit()); timer.split();
 
-            // == Garbage Collection
+            // == Garbage Collection - set to null to trigger garbage collection and free some memory
             buffer1 = null; buffer2 = null; buffer3 = null;
             System.gc();
 
@@ -411,9 +411,6 @@ public class SquareDetectionAsyncTask extends AsyncTask<String, String, Integer>
 
         return bs;
     }
-
-
-
 
     @Override
     protected void onProgressUpdate(String... values) {

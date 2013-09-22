@@ -8,11 +8,6 @@ import java.util.PriorityQueue;
  */
 public class BlobSampler {
 
-    // % and hard value offsets for determining where to take colour samples.
-    private static final short PIXEL_OFFSET = 6;
-    private static final short INSIDE_PIXEL_OFFSET = 1;
-    private static final double PERCENTAGE_OFFSET = 0.30;
-
     public static class Sample implements Comparable<Sample>{
         public Blob parent;
         public int pixelIndex;

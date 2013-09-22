@@ -95,23 +95,6 @@ public class ValidVoteFilter{
 
             int sampleX = sample.pixelIndex % imageWidth;
 
-            // Can't get neighbours if we're on the edge of a row.
-//            if(sampleX == 0)
-//                sampleX++;
-//            else if(sampleX == imageWidth-1)
-//                sampleX--;
-//
-//            // Average each colour component with 2 neighbours.
-//            int colour1 = pixelData[sampleX-1];
-//            int colour2 = pixelData[sampleX];
-//            int colour3 = pixelData[sampleX+1];
-//
-//            int avgR = (((colour1 >> 16) & 255) + ((colour2 >> 16) & 255) + ((colour3 >> 16) & 255))/3;
-//            int avgG = (((colour1 >> 8) & 255) + ((colour2 >> 8) & 255) + ((colour3 >> 8) & 255))/3;
-//            int avgB = ((colour1 & 255) + (colour2 & 255) + (colour3 & 255))/3;
-//
-//            int colour = (avgR << 16) | (avgG << 8) | avgB;
-
             sample.colour = pixelData[sampleX];
         }
     }
@@ -130,8 +113,7 @@ public class ValidVoteFilter{
             if(blob.assignedColour== Color.BLACK) blacks++;
             if(blob.assignedColour== Color.BLUE) blues++;
         }
-        // Math.max(totalred, Math.max(totalred, totalblue)) < 40)
-        // s <= 25 && v <= 40
+
         Log.d("uct.snapvote", "Identified "+correctBlobs+" as actual votes. Red: "+reds+" Green: "+greens+" Blue: "+blues+" Black: "+blacks);
     }
 
@@ -241,7 +223,6 @@ public class ValidVoteFilter{
 
         float r = (float)Math.cbrt(Math.abs(d1*d1*d1) + Math.abs(d2*d2*d2) + Math.abs(d3*d3*d3));
 
-        //Log.d("uct.snapvote", String.format("R: %d %d, G: %d, %d B: %d %d = %f", r1, r2, g1, g2, b1, b2, r ));
         return r;
     }
 

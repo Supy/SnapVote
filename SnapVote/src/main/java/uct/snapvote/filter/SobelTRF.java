@@ -12,11 +12,6 @@ public class SobelTRF extends ThreadedBaseRegionFilter {
 
     private ImageByteBuffer dirDataOutput;
 
-    public SobelTRF(ImageByteBuffer source, ImageByteBuffer destination, ImageByteBuffer dirDataOutput) {
-        super(source, destination);
-        this.dirDataOutput = dirDataOutput;
-    }
-
     public SobelTRF(ImageByteBuffer source, ImageByteBuffer destination, int x1, int y1, int x2, int y2, ImageByteBuffer dirDataOutput) {
         super(source, destination, x1, y1, x2, y2);
         this.dirDataOutput = dirDataOutput;
