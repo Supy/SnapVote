@@ -16,24 +16,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Ben on 2013/09/18.
+ * A custom ListAdapter for Poll objects. It stores the polls as a list of JSONObject's
+ * pulled from a JSONArray. ListAdapter makes it easy to display a 2 line list item
+ * in the list on the MainActivity.
  */
 public class PollListAdapter extends BaseAdapter {
 
     private Context context;
     private List<JSONObject> contents;
 
+    // constructor
     public PollListAdapter(Context c, JSONArray polls)
     {
         this.context = c;
         rebuild(polls);
     }
 
+    /**
+     * Construct a list of JSONobjects from a JSONArray.
+     * @param polls A list of polls
+     */
     public void rebuild(JSONArray polls)
     {
         this.contents =new ArrayList<JSONObject>();
         for(int i=0;i<polls.length();i++)
         {
+            // print the exception but dont notify since this shouldn't ever happen
             try {
                 this.contents.add(polls.getJSONObject(i));
             } catch (JSONException e) {
@@ -42,7 +50,7 @@ public class PollListAdapter extends BaseAdapter {
         }
     }
 
-
+    // == Accessors
     @Override
     public int getCount() {
         return contents.size();
@@ -57,7 +65,16 @@ public class PollListAdapter extends BaseAdapter {
     public long getItemId(int i) {
         return i;
     }
+    // ===========
 
+    /**
+     * Construct the view for the given item id. Use a layour inflator to build the layout
+     * from the specified layout file.
+     * @param i Item index
+     * @param view Possibly existing view
+     * @param viewGroup (unused)
+     * @return the constructed View
+     */
     @Override
     public View getView(int i, View view, ViewGroup viewGroup)
     {
